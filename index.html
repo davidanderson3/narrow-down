@@ -1,454 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
-    <title>Dashboard</title>
+  <title>Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap"
-    rel="stylesheet"
-  />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon.png">
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
 </head>
-
 <body>
-  <!-- GOALS VIEW (with its own navbar, tabs, and content) -->
   <section id="goalsView">
-    <!-- NAVBAR -->
     <nav class="navbar">
       <div class="container navbar-inner">
         <div class="navbar-left site-name">Dashboard</div>
-        <div class="navbar-right">
-          <button type="button" id="loginBtn" style="display:none;">Sign In</button>
-        </div>
       </div>
-      <div class="tabs scroll-tabs" id="tabsContainer" style="visibility:hidden;">
-        <button class="tab-button active" data-target="dailyPanel">Routine</button>
-        <button class="tab-button" data-target="projectsPanel">Projects</button>
-        <button class="tab-button" data-target="calendarPanel">Calendar</button>
-        <button class="tab-button" data-target="metricsPanel">Metrics</button>
-        <button class="tab-button" data-target="listsPanel">Lists</button>
-        <button class="tab-button" data-target="travelPanel">Places</button>
-        <button class="tab-button" data-target="moviesPanel">Movies</button>
+      <div class="tabs scroll-tabs" id="tabsContainer">
+        <button class="tab-button active" data-target="moviesPanel">Movies</button>
         <button class="tab-button" data-target="showsPanel">Live Music</button>
         <button class="tab-button" data-target="recipesPanel">Recipes</button>
-        <button class="tab-button" data-target="planningPanel">Finances</button>
-        <button class="tab-button" data-target="budgetPanel">Budget</button>
-        <button class="tab-button" data-target="backupsPanel">Backups</button>
-        <button class="tab-button" data-target="geoscorePanel">GeoScore</button>
-        <button class="tab-button" data-target="geolayersPanel">GeoLayers</button>
       </div>
     </nav>
 
-    <!-- TABS CONTENT PANELS -->
-      <!-- Hide routine panel by default to prevent flashing before JS initializes -->
-      <div id="dailyPanel" class="main-layout" style="display:none;">
+    <div id="moviesPanel" class="main-layout" style="display:flex;">
       <div class="full-column">
         <div class="panel-header">
-          <h2>Routine Tasks</h2>
-          <button type="button" class="icon-btn tab-hide-btn" title="Hide Tab">🕒</button>
+          <h2>Movies</h2>
         </div>
-        <h3>Daily</h3>
-        <div id="dailyTasksList" class="decision-container"></div>
-        <h3>Weekly</h3>
-        <div id="weeklyTasksList" class="decision-container"></div>
-        <h3 style="margin-top:2em;">Monthly</h3>
-        <div id="monthlyTasksList" class="decision-container"></div>
-        <details id="hiddenTasksSection">
-          <summary>Hidden Tasks</summary>
-          <div id="hiddenTasksList" class="decision-container"></div>
-        </details>
-        <details id="completedTasksSection">
-          <summary>Completed Tasks</summary>
-          <div id="completedTasksList" class="decision-container"></div>
-        </details>
+        <div id="moviesForm" style="margin-bottom:1rem;">
+          <div id="moviesApiKeyContainer" style="display:inline-block;">
+            <input type="text" id="moviesApiKey" placeholder="TMDB API Key" style="margin-right:.5rem;">
+          </div>
+        </div>
+        <div id="movieTabs" class="movie-tabs">
+          <button class="movie-tab active" data-target="movieStreamSection">Movie Stream</button>
+          <button class="movie-tab" data-target="savedMoviesSection">Saved Movies</button>
+          <button class="movie-tab" data-target="watchedMoviesSection">Watched Movies</button>
+        </div>
+        <div id="movieStreamSection">
+          <div id="movieList" class="decision-container"></div>
+        </div>
+        <div id="savedMoviesSection" style="display:none;">
+          <div id="savedMoviesList" class="decision-container"></div>
+        </div>
+        <div id="watchedMoviesSection" style="display:none;">
+          <div id="watchedMoviesList" class="decision-container"></div>
+        </div>
+        <footer id="tmdbNotice" class="tmdb-notice">
+          Uses the <a href="https://developer.themoviedb.org/reference/intro/getting-started" target="_blank" rel="noopener noreferrer">TMDB API</a>.
+        </footer>
       </div>
     </div>
 
-
-    <!-- PROJECTS PANEL -->
-      <div id="projectsPanel" class="main-layout" style="display:none;">
-      <div class="full-column">
-        <div id="projectsHeaderRow" class="panel-header">
-          <h2 id="projectsHeader">Projects</h2>
-          <div class="header-actions">
-            <button type="button" class="icon-btn tab-hide-btn" title="Hide Tab">🕒</button>
-          </div>
-        </div>
-
-        <div id="goalList" class="decision-container"></div>
-        <div class="wizard-panel">
-          <button id="addProjectBtn" style="display:none;">+ Add Project</button>
-        </div>
-
-          <div id="projectWizardModal" class="modal" style="display:none;">
-          <div class="modal-content">
-            <div id="wizardStep"></div>
-            <div class="button-row">
-              <button type="button" id="wizardBackBtn" style="display: none;">Back</button>
-              <button type="button" id="wizardCancelBtn">Cancel</button>
-              <button type="button" id="wizardNextBtn">Next</button>
-            </div>
-          </div>
-        </div>
-
-        <hr style="margin: 40px 0;" />
-
-        <div id="completedList" class="decision-container"></div>
-      </div>
-    </div>
-
-
-    <!-- CALENDAR PANEL -->
-    <div id="calendarPanel" class="main-layout" style="display:none;">
-      <div class="calendar-mobile-tabs">
-        <button type="button" id="calendarDailyTab" class="calendar-mobile-tab active">Daily</button>
-        <button type="button" id="calendarHourlyTab" class="calendar-mobile-tab">Hourly</button>
-      </div>
-      <div class="left-column">
-        <div id="calendarHeaderRow" class="panel-header">
-          <h2>Calendar</h2>
-          <div class="header-actions">
-              <button id="calendarAddProjectBtn">+ Add Project</button>
-            <button type="button" class="icon-btn tab-hide-btn" title="Hide Tab">🕒</button>
-          </div>
-        </div>
-        <div id="calendarContent"></div>
-      </div>
-      <div class="right-column">
-        <div id="todaySchedule"></div>
-      </div>
-
-
-    </div>
-
-
-    <!-- METRICS PANEL -->
-      <div id="metricsPanel" class="main-layout" style="display:none;">
+    <div id="showsPanel" class="main-layout" style="display:none;">
       <div class="full-column">
         <div class="panel-header">
-          <h2>Metrics</h2>
-          <div class="header-actions">
-            <button id="metricPrevDayBtn" class="icon-button">◀️</button>
-            <span id="metricsDateLabel"></span>
-            <button id="metricNextDayBtn" class="icon-button">▶️</button>
-            <button type="button" class="icon-btn tab-hide-btn" title="Hide Tab">🕒</button>
-          </div>
+          <h2>Live Music</h2>
         </div>
-        <div id="genericStatsSummary"></div>
-        <div id="metricsConfigSection"></div>
-        <div id="metricsReport" class="report-panel"></div>
-      </div>
-    </div>
-
-    <!-- Modal for metric charts -->
-    <div id="metricChartModal" class="modal" style="display:none;">
-      <div class="modal-content" style="max-width:600px;width:90%;">
-        <canvas id="metricChartCanvas" width="500" height="300"></canvas>
-      </div>
-    </div>
-
-    <!-- Modal for metric values -->
-    <div id="metricValuesModal" class="modal" style="display:none;">
-      <div class="modal-content" style="max-width:400px;width:90%;max-height:80vh;overflow:auto;">
-        <div id="metricValuesList"></div>
-      </div>
-    </div>
-
-    <!-- LISTS PANEL -->
-      <div id="listsPanel" class="main-layout" style="display:none">
-      <div class="full-column">
-        <div class="panel-header">
-          <h2>Lists</h2>
-          <button type="button" class="icon-btn tab-hide-btn" title="Hide Tab">🕒</button>
-        </div>
-        <!-- lists.js will inject the form and rendered lists here -->
-        <div id="listsReport" class="report-panel"></div>
-      </div>
-    </div>
-
-    <!-- TRAVEL PANEL -->
-      <div id="travelPanel" class="main-layout" style="display:none">
-        <div class="full-column">
-          <div class="panel-header">
-            <h2>Places</h2>
-            <button type="button" class="icon-btn tab-hide-btn" title="Hide Tab">🕒</button>
-          </div>
-          <div id="placeSearchRow">
-            <input id="placeSearch" type="text" placeholder="Search all places or coordinates...">
-            <button type="button" id="placeSearchBtn">Search</button>
-            <button type="button" id="clearPlaceSearch">Clear</button>
-          </div>
-        <ul id="placeResults" class="search-results"></ul>
-        <h3 id="tripAdvisorHeader" style="margin-top:1em;">Popular Nearby Places</h3>
-        <ul id="tripAdvisorList" class="search-results"></ul>
-        <div id="travelMapWrapper">
-          <div id="travelMap"></div>
-          <div id="travelTagFilters"></div>
-        </div>
-        <input id="travelSearch" type="text" placeholder="Filter list..." style="margin:8px 0;max-width:260px;">
-        <label id="showVisitedLabel">
-          <input id="showVisitedToggle" type="checkbox">
-          <span>Include visited</span>
-        </label>
-        <div id="placeCount" style="margin:8px 0;"></div>
-        <div id="paginationControls" style="margin:8px 0; display:flex; align-items:center; gap:8px;">
-          <button type="button" id="prevPageBtn">Prev</button>
-          <span id="pageInfo"></span>
-          <button type="button" id="nextPageBtn">Next</button>
-        </div>
-          <table id="travelTable">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Description</th>
-              <th>Tags</th>
-              <th>Rating</th>
-              <th>Date</th>
-              <th>Visited</th>
-              <th>Distance (mi)</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-          </table>
-      </div>
-    </div>
-
-    <!-- MOVIES PANEL -->
-      <div id="moviesPanel" class="main-layout" style="display:none">
-        <div class="full-column">
-          <div class="panel-header">
-            <h2>Movies</h2>
-            <button type="button" class="icon-btn tab-hide-btn" title="Hide Tab">🕒</button>
-          </div>
-          <div id="moviesForm" style="margin-bottom:1rem;">
-            <div id="moviesApiKeyContainer" style="display:inline-block;">
-              <input type="text" id="moviesApiKey" placeholder="TMDB API Key" style="margin-right:.5rem;">
-            </div>
-          </div>
-          <div id="movieTabs" class="movie-tabs">
-            <button class="movie-tab active" data-target="movieStreamSection">Movie Stream</button>
-            <button class="movie-tab" data-target="savedMoviesSection">Saved Movies</button>
-            <button class="movie-tab" data-target="watchedMoviesSection">Watched Movies</button>
-          </div>
-          <div id="movieStreamSection">
-            <div id="movieList" class="decision-container"></div>
-          </div>
-          <div id="savedMoviesSection" style="display:none;">
-            <div id="savedMoviesList" class="decision-container"></div>
-          </div>
-          <div id="watchedMoviesSection" style="display:none;">
-            <div id="watchedMoviesList" class="decision-container"></div>
-          </div>
-          <footer id="tmdbNotice" class="tmdb-notice">
-            Uses the <a href="https://developer.themoviedb.org/reference/intro/getting-started" target="_blank" rel="noopener noreferrer">TMDB API</a>.
-          </footer>
-        </div>
-      </div>
-
-    <!-- LIVE MUSIC PANEL -->
-      <div id="showsPanel" class="main-layout" style="display:none">
-        <div class="full-column">
-          <div class="panel-header">
-            <h2>Live Music</h2>
-            <button type="button" class="icon-btn tab-hide-btn" title="Hide Tab">🕒</button>
-          </div>
-          <div id="ticketmasterForm" style="margin-bottom:1rem;">
-            <button type="button" id="spotifyTokenBtn" style="margin-right:.5rem;">Login to Spotify</button>
-            <span id="spotifyStatus" style="margin-right:.5rem;"></span>
-            <input type="password" id="spotifyToken" placeholder="Spotify Access Token" style="margin-right:.5rem;">
-            <input type="password" id="ticketmasterApiKey" placeholder="Ticketmaster API Key" style="margin-right:.5rem;">
-            <div style="font-size:0.8rem;margin-top:0.5rem;">
-              Uses the <a href="https://developer.spotify.com/documentation/web-api/" target="_blank" rel="noopener noreferrer">Spotify Web API</a> to fetch your top artists and the <a href="https://developer.ticketmaster.com/products-and-docs/apis/discovery-api/v2/" target="_blank" rel="noopener noreferrer">Ticketmaster Discovery API</a> to find shows.
-            </div>
-          </div>
-      <div id="ticketmasterList" class="decision-container"></div>
-        </div>
-      </div>
-      <!-- RECIPES PANEL -->
-      <div id="recipesPanel" class="main-layout" style="display:none;">
-        <div class="full-column">
-          <div class="panel-header">
-            <h2>Recipes</h2>
-            <button type="button" class="icon-btn tab-hide-btn" title="Hide Tab">🕒</button>
-          </div>
-          <div id="recipesForm" style="margin-bottom:1rem;">
-            <input type="text" id="recipesQuery" placeholder="Search (e.g. chicken)" style="margin-right:.5rem;">
-            <div id="recipesApiKeyContainer" style="display:inline-block;">
-              <input type="text" id="recipesApiKey" placeholder="API Key" style="margin-right:.5rem;">
-              <div id="recipesApiKeyInstructions" style="font-size:0.8rem;margin-top:0.5rem;">
-                Get a free API key from <a href="https://api-ninjas.com/profile" target="_blank" rel="noopener noreferrer">API Ninjas</a>.
-              </div>
-            </div>
-            <button type="button" id="recipesSearchBtn" aria-label="Search recipes">Search</button>
-          </div>
-          <div id="recipesList" class="decision-container"></div>
+        <div id="ticketmasterForm" style="margin-bottom:1rem;">
+          <button type="button" id="spotifyTokenBtn" style="margin-right:.5rem;">Login to Spotify</button>
+          <span id="spotifyStatus" style="margin-right:.5rem;"></span>
+          <input type="password" id="spotifyToken" placeholder="Spotify Access Token" style="margin-right:.5rem;">
+          <input type="password" id="ticketmasterApiKey" placeholder="Ticketmaster API Key" style="margin-right:.5rem;">
           <div style="font-size:0.8rem;margin-top:0.5rem;">
-            Uses the <a href="https://api-ninjas.com/api/recipe" target="_blank" rel="noopener noreferrer">API Ninjas Recipe API</a>.
+            Uses the <a href="https://developer.spotify.com/documentation/web-api/" target="_blank" rel="noopener noreferrer">Spotify Web API</a> to fetch your top artists and the <a href="https://developer.ticketmaster.com/products-and-docs/apis/discovery-api/v2/" target="_blank" rel="noopener noreferrer">Ticketmaster Discovery API</a> to find shows.
           </div>
         </div>
+        <div id="ticketmasterList" class="decision-container"></div>
       </div>
+    </div>
 
-    <!-- FINANCES PANEL -->
-      <div id="planningPanel" class="main-layout" style="display:none">
-        <div class="full-column">
-          <div class="panel-header">
-            <h2>Finances</h2>
-            <button type="button" class="icon-btn tab-hide-btn" title="Hide Tab">🕒</button>
-          </div>
-          <div id="planningContainer"></div>
+    <div id="recipesPanel" class="main-layout" style="display:none;">
+      <div class="full-column">
+        <div class="panel-header">
+          <h2>Recipes</h2>
         </div>
-      </div>
-
-      <div id="budgetPanel" class="main-layout" style="display:none">
-        <div class="full-column">
-          <div class="panel-header">
-            <h2>Budget</h2>
-            <button type="button" class="icon-btn tab-hide-btn" title="Hide Tab">🕒</button>
-          </div>
-          <div id="budgetContainer"></div>
-        </div>
-      </div>
-
-      <!-- BACKUPS PANEL -->
-      <div id="backupsPanel" class="main-layout" style="display:none">
-        <div class="full-column">
-          <div class="panel-header">
-            <h2>Backups</h2>
-            <div class="header-actions">
-              <button id="backupNowBtn">Backup Now</button>
-              <button type="button" class="icon-btn tab-hide-btn" title="Hide Tab">🕒</button>
+        <div id="recipesForm" style="margin-bottom:1rem;">
+          <input type="text" id="recipesQuery" placeholder="Search (e.g. chicken)" style="margin-right:.5rem;">
+          <div id="recipesApiKeyContainer" style="display:inline-block;">
+            <input type="text" id="recipesApiKey" placeholder="API Key" style="margin-right:.5rem;">
+            <div id="recipesApiKeyInstructions" style="font-size:0.8rem;margin-top:0.5rem;">
+              Get a free API key from <a href="https://api-ninjas.com/profile" target="_blank" rel="noopener noreferrer">API Ninjas</a>.
             </div>
           </div>
-          <ul id="backupList"></ul>
+          <button type="button" id="recipesSearchBtn" aria-label="Search recipes">Search</button>
+        </div>
+        <div id="recipesList" class="decision-container"></div>
+        <div style="font-size:0.8rem;margin-top:0.5rem;">
+          Uses the <a href="https://api-ninjas.com/api/recipe" target="_blank" rel="noopener noreferrer">API Ninjas Recipe API</a>.
         </div>
       </div>
-
-      <!-- GEOSCORE PANEL -->
-      <div id="geoscorePanel" class="main-layout" style="display:none;">
-        <div class="full-column">
-          <div class="panel-header">
-            <h2>GeoScore Admin</h2>
-            <button type="button" class="icon-btn tab-hide-btn" title="Hide Tab">🕒</button>
-          </div>
-          <div id="geoscoreAdmin"></div>
-        </div>
-      </div>
-
-      <!-- GEOLAYERS PANEL -->
-      <div id="geolayersPanel" class="main-layout" style="display:none;">
-        <div class="full-column">
-          <div class="panel-header">
-            <h2>GeoLayers Game</h2>
-            <button type="button" class="icon-btn tab-hide-btn" title="Hide Tab">🕒</button>
-          </div>
-          <iframe src="geolayers-game/public/index.html" style="width:100%;height:80vh;border:none;"></iframe>
-        </div>
-      </div>
-
-
+    </div>
   </section>
 
-  <nav id="bottomNav" class="bottom-nav">
-    <a href="settings.html" class="icon-btn" id="bottomSettingsBtn"><img src="assets/gear.svg" alt="Settings"></a>
-    <button type="button" id="bottomAddBtn" class="icon-btn circle-btn icon-button"><img src="assets/plus.svg" alt="Add" /></button>
-    <button type="button" id="bottomLogoutBtn" class="icon-btn"><img src="assets/sign-out.svg" alt="Sign Out" /></button>
-  </nav>
-
-  <!-- Modal shown when using the bottom add button -->
-  <div id="bottomAddModal" class="modal" style="display:none;">
-    <div class="modal-content">
-      <h3 id="bottomAddTitle"></h3>
-      <div id="bottomAddOptions" class="rating-options"></div>
-      <div id="bottomAddSection" class="rating-options" style="display:none;margin-top:8px;"></div>
-      <input id="bottomAddText" type="text" placeholder="Description" style="display:none;margin-top:8px;width:100%;" />
-      <div class="modal-actions" style="margin-top:1em;">
-        <button type="button" id="bottomAddCancel">Cancel</button>
-        <button type="button" id="bottomAddSubmit">Add</button>
-      </div>
-    </div>
-  </div>
-  <!-- Lists modal for adding lists or items -->
-  <div id="listsFormModal" class="modal" style="display:none;">
-    <div id="listsFormWrapper" class="modal-content" style="max-height:80vh;overflow:auto"></div>
-  </div>
-
-  <!-- Modal for adding a place -->
-  <div id="addPlaceModal" class="modal" style="display:none;">
-    <div class="modal-content" style="max-height:80vh;overflow:auto;">
-      <h3>Add Place</h3>
-      <form id="addPlaceForm">
-        <div style="margin-bottom:8px;">
-          <label>Name<br><input type="text" id="placeName" required /></label>
-        </div>
-        <div style="margin-bottom:8px;">
-          <label>Description<br><input type="text" id="placeDescription" /></label>
-        </div>
-        <div style="margin-bottom:8px;">
-          <label>Categories</label>
-          <div id="placeTags"></div>
-          <input type="text" id="extraTags" placeholder="Additional categories (comma separated)" style="margin-top:8px;width:100%;" />
-        </div>
-        <div style="margin-bottom:8px;">
-          <label>Rating<br><input type="text" id="placeRating" /></label>
-        </div>
-        <div style="margin-bottom:8px;">
-          <label>Date<br><input type="date" id="placeDate" /></label>
-        </div>
-        <div style="margin-bottom:8px;">
-          <label><input type="checkbox" id="placeVisited" /> Visited</label>
-        </div>
-        <div class="modal-actions" style="margin-top:1em;">
-          <button type="button" id="placeCancel">Cancel</button>
-          <button type="submit">Save</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div id="contactModal" class="modal" style="display:none;">
-    <div class="modal-content" style="max-width:400px;width:90%;max-height:80vh;overflow:auto;">
-      <h3>Contact Developer</h3>
-      <form id="contactForm">
-        <div style="margin-bottom:8px;">
-          <label>Name<br><input type="text" id="contactName" /></label>
-        </div>
-        <div style="margin-bottom:8px;">
-          <label>Email<br><input type="email" id="contactEmailInput" required /></label>
-        </div>
-        <div style="margin-bottom:8px;">
-          <label>Message<br><textarea id="contactMessage" required style="width:100%;height:100px;"></textarea></label>
-        </div>
-        <div class="modal-actions" style="margin-top:1em;">
-          <button type="submit">Send</button>
-          <button type="button" id="contactCancelBtn">Cancel</button>
-        </div>
-      </form>
-    </div>
-  </div>
-  <script src="https://apis.google.com/js/api.js"></script>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script type="module" src="js/main.js"></script>
-  <script type="module" src="js/lists.js"></script>
-  <script type="module" src="js/travel.js"></script>
   <script type="module" src="js/movies.js"></script>
   <script type="module" src="js/shows.js"></script>
   <script type="module" src="js/recipes.js"></script>
-  <script type="module" src="js/weather.js"></script>
-  <script type="module" src="js/planning.js"></script>
-  <script type="module" src="js/budget.js"></script>
-  <script type="module" src="js/backups.js"></script>
-  <script type="module" src="js/geoscore.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 </html>
