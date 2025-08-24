@@ -1,0 +1,13 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {"name": "United States"},
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-95,37]
+      }
+    }
+  ]
+}

@@ -1,0 +1,2327 @@
+/* ------------------------------
+   Global Layout
+------------------------------ */
+html,
+body {
+  margin: 0;
+  padding: 0 0 72px 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f5f0;
+  background-image:
+    url('https://www.transparenttextures.com/patterns/french-stucco.png');
+  background-repeat: repeat;
+  background-size: 600px 600px;
+  color: #333;
+  width: 100%;
+  min-height: 100vh;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+body.mild-glow {
+  box-shadow: inset 0 0 20px rgba(255, 255, 200, 0.6), 0 0 20px rgba(255, 255, 200, 0.6);
+}
+
+/* Subtle background pattern on main container */
+.main-layout {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  /* Expand panels to use most of the viewport on wider screens */
+  max-width: 95vw;
+  width: 100%;
+  box-sizing: border-box;
+  padding-left: 0;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(2px);
+  box-shadow: 0 4px 12px rgba(150, 150, 150, 0.05);
+}
+
+.left-column {
+  width: 60%;
+  /* Remove fixed max width so columns can expand on large displays */
+  max-width: none;
+}
+
+.right-column {
+  flex-grow: 1;
+  min-width: 240px;
+}
+
+/* ------------------------------
+   Navbar
+------------------------------ */
+.navbar {
+  background: #ffffff;
+  color: #000000;
+  font-family: 'Poppins', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  border-bottom: 1px solid #cccccc;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.navbar-inner {
+  width: 100%;
+  /* Allow the navbar to stretch nearly full width */
+  max-width: 95vw;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: 5px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar-left {
+  font-weight: bold;
+  font-size: 1.3em;
+}
+
+.menu-toggle {
+  display: none;
+}
+
+.navbar-left a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.user-email {
+  font-size: 0.8em;
+  margin-right: 8px;
+}
+
+.navbar-right button {
+  margin-left: 10px;
+  background-color: #ffffff;
+  color: #000000;
+  padding: 6px 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn img {
+  width: 24px;
+  height: 24px;
+}
+
+.navbar-right .icon-btn {
+  margin-left: 10px;
+}
+
+/* ------------------------------
+   Bottom Navbar
+------------------------------ */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #ffffff;
+  border-top: 1px solid #cccccc;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 6px 0;
+  z-index: 1000;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.bottom-nav .icon-btn {
+  margin: 0;
+}
+
+.bottom-nav .circle-btn {
+  width: 44px;
+  height: 44px;
+  background: #ffffff;
+  border: 2px solid #000;
+  border-radius: 50%;
+  padding: 0;
+}
+
+.tab-hide-btn {
+  margin-left: 8px;
+}
+
+.tab-description {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 40px;
+  margin: 8px 0;
+}
+
+/* horizontally scrollable tab list */
+.scroll-tabs {
+  display: flex;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  gap: 8px;
+  padding: 0 8px;
+  scrollbar-width: thin;
+  touch-action: pan-x;
+}
+
+.scroll-tabs::-webkit-scrollbar {
+  height: 6px;
+}
+
+.navbar-right button:hover {
+  background-color: #f2f2f2;
+}
+
+@media (max-width: 600px) {
+  .menu-toggle {
+    display: block;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+
+  .navbar-inner {
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: space-between;
+  }
+
+  .mobile-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 75%;
+    max-width: 280px;
+    background: #ffffff;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    padding-top: 60px;
+    gap: 16px;
+    z-index: 1000;
+  }
+
+  .navbar.expanded .mobile-menu {
+    transform: translateX(0);
+  }
+
+  .mobile-menu .tabs {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+  }
+
+  .mobile-menu .tabs .tab-button {
+    width: 100%;
+    text-align: left;
+    padding: 12px 16px;
+    border: none;
+    border-bottom: 1px solid #eee;
+  }
+
+  .mobile-menu .navbar-right {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .mobile-menu .navbar-right button {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .nav-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: none;
+    z-index: 999;
+  }
+
+  .navbar.expanded+.nav-overlay {
+    display: block;
+  }
+}
+
+
+/* ------------------------------
+   Content Containers
+------------------------------ */
+#appContainer {
+
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#formContainer {
+  background: #eef3ea;
+  padding: 20px;
+  border: 1px solid #d0decf;
+  border-radius: 10px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 6px rgba(122, 166, 140, 0.1);
+}
+
+/* ------------------------------
+   Headings and Inputs
+------------------------------ */
+h1 {
+  color: #7aa68c;
+  margin-top: 30px;
+}
+
+input:not([type="checkbox"]):not([type="radio"]),
+textarea {
+  width: 100%;
+  padding: 8px;
+  margin: 8px 0;
+  box-sizing: border-box;
+  border: 1px solid #c4d3c8;
+  border-radius: 6px;
+  font-size: 1em;
+  background-color: #f8fdfa;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #999;
+}
+
+/* ------------------------------
+   Buttons
+------------------------------ */
+button {
+  background-color: #7aa68c;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.2s ease;
+}
+
+button:hover {
+  background-color: #638b76;
+}
+
+
+/* ------------------------------
+   Layout and Rows
+------------------------------ */
+.decision-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.decision-row {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0px 16px;
+  border-top: 1px solid #dde4dd;
+  background-color: #fbfdfc;
+  border-radius: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: auto;
+}
+
+.left-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 60px;
+}
+
+.middle-group {
+  flex: 1 1 auto;
+  padding: 0 12px;
+  word-break: break-word;
+  min-width: 0;
+}
+
+.right-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 200px;
+  max-width: 260px;
+  flex-shrink: 0;
+}
+
+.button-row {
+  display: flex;
+  gap: 4px;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+/* Routine task list containers */
+#dailyTasksList,
+#weeklyTasksList,
+#monthlyTasksList {
+  padding: 8px;
+  border-radius: 8px;
+}
+
+#dailyTasksList {
+  border: 2px solid #ffa726;
+}
+
+#weeklyTasksList {
+  border: 2px solid #66bb6a;
+  margin-top: 1em;
+}
+
+#monthlyTasksList {
+  border: 2px solid #42a5f5;
+  margin-top: 1em;
+}
+
+#hiddenTasksSection,
+#completedTasksSection {
+  margin-top: 2em;
+}
+
+/* More room when editing a goal */
+.decision-row.editing {
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+
+.decision-row.editing .middle-group,
+.decision-row.editing .due-column {
+  width: 100%;
+}
+
+.decision-row.editing .due-column {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.decision-row.editing .due-column input,
+.decision-row.editing .due-column select {
+  width: 100%;
+}
+
+.decision-row.editing textarea {
+  min-height: 6em;
+}
+
+.decision-row.editing .middle-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Other rules remain unchanged below... */
+
+.check-column input {
+  transform: scale(1.2);
+  cursor: pointer;
+}
+
+.title-column {
+  font-size: 1.05em;
+  padding-left: 8px;
+}
+
+
+.note-text {
+  font-size: 0.85em;
+  font-style: italic;
+  color: #555;
+  padding-left: 8px;
+}
+
+.due-column {
+  text-align: right;
+  white-space: nowrap;
+  color: #777;
+}
+
+/* ------------------------------
+   Decision Card
+------------------------------ */
+.decision {
+  background: #fffefb;
+  border-left: 4px solid #ffb347;
+  margin-bottom: 14px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(255, 127, 39, 0.05);
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+
+.decision:hover {
+  box-shadow: 0 4px 8px rgba(255, 127, 39, 0.1);
+}
+
+/* ------------------------------
+   Completed Styles
+------------------------------ */
+
+
+/* ------------------------------
+   Utilities and Details
+------------------------------ */
+.row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  align-items: start;
+  margin-bottom: 12px;
+}
+
+.label {
+  font-weight: bold;
+  padding-right: 8px;
+}
+
+.inline-add-form {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.inline-add-form input[type="text"] {
+  min-width: 120px;
+}
+
+.inline-add-form input[type="date"] {
+  min-width: 110px;
+}
+
+.inline-add-form button {
+  padding: 2px 10px;
+  /* Override global button margin so the button aligns with the input */
+  margin-top: 0;
+}
+
+.inline-add-form .button-row {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  flex: 1 1 100%;
+  width: 100%;
+}
+
+.toggle-triangle {
+  font-size: 1.2em;
+  display: inline-block;
+  width: 20px;
+  color: #333;
+}
+
+.goal-card {
+  position: relative;
+  /* NEW: Ensure dropdown is positioned relative to this */
+  margin-bottom: 14px;
+  border-left: 4px solid #999;
+  background: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow: visible;
+  /* 🔥 This is crucial */
+  z-index: 1;
+}
+
+.goal-card.do-later {
+  background: repeating-linear-gradient(
+    45deg,
+    #fefbea,
+    #fefbea 10px,
+    #f9f5d7 10px,
+    #f9f5d7 20px
+  );
+}
+
+.goal-card.do-later .decision-row {
+  background: transparent;
+}
+
+.main-layout,
+.decision-container {
+  overflow: visible !important;
+  /* 🔥 override hidden if set */
+  position: relative;
+}
+
+
+.goal-drop-indicator {
+  outline: 2px dashed #ccc;
+}
+
+.indent-1 {
+  margin-left: 20px;
+}
+/* ------------------------------
+   Animation
+------------------------------ */
+@keyframes flash {
+  0% {
+    background-color: #fff8b3;
+  }
+
+  100% {
+    background-color: transparent;
+  }
+}
+
+.wizard-panel {
+  padding: 10px 10px 10px 10px;
+}
+
+/* Mobile Fixes for Goal Layout */
+@media (max-width: 768px) {
+  .main-layout {
+    flex-direction: column;
+  }
+
+  .left-column,
+  .right-column {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .goal-card {
+    margin-bottom: 10px;
+    padding: 6px 8px;
+  }
+
+  .decision-row {
+    display: grid !important;
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      "left middle"
+      "due due";
+    align-items: center !important;
+    gap: 6px;
+    padding: 10px !important;
+  }
+
+  .left-group {
+    grid-area: left;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .middle-group {
+    grid-area: middle;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.95em;
+    gap: 4px;
+  }
+
+  .due-column {
+    grid-area: due;
+    font-size: 0.9em;
+  }
+
+  .title-column {
+    font-size: 1em;
+    padding-left: 4px;
+  }
+
+
+  .note-text {
+    font-size: 0.8em;
+    font-style: italic;
+    color: #555;
+    padding-left: 4px;
+  }
+
+  .due-column {
+    width: auto;
+  }
+
+  .button-row {
+    flex-wrap: nowrap;
+    gap: 4px;
+    justify-content: flex-end;
+    width: 100%;
+  }
+
+  .button-row button {
+    padding: 4px 8px;
+    margin: 0;
+    height: 30px;
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+
+  .inline-add-form {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-left: 0 !important;
+  }
+
+  .inline-add-form input,
+  .inline-add-form button {
+    flex: 1 1 auto;
+    min-width: 120px;
+    max-width: 100%;
+    font-size: 0.9em;
+  }
+
+  /* Expanded layout when editing goals */
+  .decision-row.editing {
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      "left middle"
+      "due due";
+  }
+
+  .decision-row.editing .due-column {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .decision-row.editing .due-column input,
+  .decision-row.editing .due-column select {
+    width: 100%;
+  }
+
+  .completed-decision-inline .middle-group {
+    grid-template-columns: 1fr !important;
+  }
+
+  .navbar {
+    align-items: center;
+  }
+
+  .navbar-right {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  h1 {
+    font-size: 1.5em;
+    margin-bottom: 10px;
+  }
+}
+
+/* Revert mobile-specific goal layout on wider screens */
+@media (min-width: 769px) {
+  .decision-row {
+    display: flex !important;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 16px !important;
+  }
+
+  .left-group {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .middle-group {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .goal-card .decision-row {
+    position: relative;
+  }
+
+  .goal-card .button-row {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .goal-card .decision-row.editing .button-row {
+    position: static;
+    transform: none;
+  }
+
+  .goal-card .due-column {
+    margin-right: 170px;
+  }
+
+  .goal-card .decision-row.editing .due-column {
+    margin-right: 0;
+  }
+}
+
+
+.decision.dragging {
+  opacity: 0.5;
+  z-index: 10;
+}
+
+/* Allow all interaction within goal children */
+.goal-children,
+.goal-children * {
+  pointer-events: auto !important;
+}
+
+
+.decision.indent-1 {
+  cursor: grab;
+}
+
+.decision.indent-1.dragging {
+  opacity: 0.5;
+}
+
+.dragging {
+  opacity: 0.5;
+}
+
+.goal-card.drag-over {
+  outline: 2px dashed #ccc;
+}
+
+.task-list .drag-over {
+  outline: 2px dashed #8cd1cc;
+  background-color: #f0fcfc;
+}
+
+.button-row button {
+  padding: 4px 0px;
+  margin: 0;
+  height: 30px;
+  font-size: 0.9em;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#wizardBackBtn,
+#wizardCancelBtn,
+#wizardNextBtn {
+  padding: 4px 8px;
+}
+
+.button-row {
+  display: flex;
+  gap: 4px;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+
+
+#dailyTasksList .daily-task {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fffdf4;
+  border-left: 4px solid #ffa726;
+  padding: 2.5px 14px;
+  border-radius: 6px;
+  margin-bottom: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+#dailyTasksList .daily-task label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+#dailyTasksList input[type="checkbox"] {
+  transform: scale(1.2);
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal-content {
+  background: white;
+  padding: 24px;
+  border-radius: 10px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.rating-options {
+  display: flex;
+  justify-content: space-between;
+  margin: 12px 0;
+}
+
+.rating-options label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.9em;
+}
+
+.rating-options input[type="radio"] {
+  margin-top: 6px;
+}
+
+.modal-actions {
+  text-align: right;
+}
+
+/* Settings page */
+.settings-back-link {
+  align-self: flex-start;
+  margin-bottom: 1em;
+  text-decoration: none;
+  color: #333;
+}
+
+.settings-back-link:hover {
+  text-decoration: underline;
+}
+
+.settings-container.main-layout {
+  justify-content: flex-start;
+  flex-direction: column;
+  margin: 0 auto;
+}
+
+.settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.settings-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  background: #f5f5f5;
+  border-radius: 4px;
+  width: 100%;
+}
+
+.settings-option button {
+  margin: 0;
+  padding: 2px 6px;
+  background: transparent;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  color: #333;
+}
+
+.settings-option button:hover {
+  background: #e0e0e0;
+}
+
+.settings-option input[type="checkbox"] {
+  transform: scale(1.2);
+}
+
+
+.daily-task button,
+.daily-task input {
+  pointer-events: auto;
+}
+
+.daily-task-wrapper.dragging {
+  opacity: 0.6;
+}
+
+.daily-task-wrapper.drag-over {
+  border: 2px dashed #aaa;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   1) Container inside goalsView
+───────────────────────────────────────────────────────────────────────────── */
+#goalsView {
+  /* make it a flex-column so navbar → tabs → content stack */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  margin: 0 auto 30px;
+  /* give some breathing room vertically */
+  /* Use most of the screen width on desktops */
+  max-width: 95vw;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 20px;
+  /* horizontal gutter */
+}
+
+/* if you want an inner wrapper like .container */
+#goalsView .container {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* Stretch inner container nearly full width */
+  max-width: 95vw;
+  margin: 0 auto;
+  padding: 0 20px;
+  /* gutter */
+  display: flex;
+  align-items: center;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   2) Navbar tweaks for contrast & spacing
+───────────────────────────────────────────────────────────────────────────── */
+#goalsView .navbar {
+  background: #ffffff;
+  color: #000000;
+  border-bottom: 1px solid #cccccc;
+  border-radius: 0;
+}
+
+#goalsView .navbar-inner {
+  /* sits inside your .container wrapper */
+  width: 100%;
+  box-sizing: border-box;
+  padding: 5px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* buttons & text in navbar */
+#goalsView .navbar-left,
+#goalsView .navbar-right button {
+  color: #000000;
+}
+
+#goalsView .navbar-right button {
+  background-color: #ffffff;
+  transition: background-color 0.2s;
+}
+
+#goalsView .navbar-right button:hover {
+  background-color: #f2f2f2;
+  border-color: #999999;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   3) Tabs pulled left & higher contrast
+───────────────────────────────────────────────────────────────────────────── */
+#goalsView .navbar .tabs {
+  width: 100%;
+  margin: 0;
+  padding: 0 8px;
+  display: flex;
+  justify-content: flex-start;
+  gap: 8px;
+  background: transparent;
+  border: none;
+}
+
+#goalsView .navbar .tabs button {
+  background: #ffffff !important;
+  border: 1px solid #cccccc;
+  border-bottom: 2px solid transparent;
+  border-radius: 4px 4px 0 0;
+  padding: 2px 12px;
+  font-size: 0.9rem;
+  color: #000000 !important;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s ease-in-out, border-color 0.2s;
+}
+
+#goalsView .navbar .tabs button.active {
+  background: #e4ede8 !important;
+  /* subtle highlight */
+  color: #000000 !important;
+  border-color: #7aa68c;
+  border-bottom-width: 2px;
+  font-weight: 600;
+}
+
+#goalsView .navbar .tabs button:hover:not(.active) {
+  background: #f2f2f2;
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   4) Main content panel under tabs
+───────────────────────────────────────────────────────────────────────────── */
+#goalsView .left-column,
+#goalsView .right-column,
+#goalsView .full-column {
+  background: rgba(255, 255, 255, 0.85);
+  width: 100%;
+  box-sizing: border-box;
+  padding: 20px;
+  border: 1px solid #d0decf;
+  border-top: none;
+  /* so it visually connects under the tabs */
+  border-radius: 0 0 8px 8px;
+  /* round the bottom corners */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+h2 {
+  margin: 0.5em 0;
+  /* 0.5em top & bottom, 0 left & right */
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.panel-header .header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#projectsHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Remove default button margin so header buttons align with text */
+#projectsHeaderRow button,
+#calendarHeaderRow button {
+  margin-top: 0;
+}
+
+#calendarHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Separate days in calendar */
+#calendarContent h3 {
+  border-top: 1px solid #ccc;
+  margin-top: 16px;
+  padding-top: 8px;
+}
+
+#calendarContent h3:first-child {
+  border-top: none;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+/* base look */
+.postpone-option {
+  display: block;
+  width: 100%;
+  padding: 4px 12px;
+  border: none;
+  background: white;
+  color: #333;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* hover look */
+.postpone-option:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+#metricsPanel.main-layout {
+  justify-content: flex-start !important;
+  max-width: none !important;
+  margin: 0 !important;
+  width: 100% !important;
+}
+
+#metricsPanel .full-column {
+  flex: 1 1 100%;
+}
+
+
+/* Layout for daily panel: allow tasks columns side-by-side with report below */
+#dailyPanel.main-layout {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+#dailyPanel .full-column {
+  flex: 1 1 100%;
+}
+
+
+/* Minimalist list-selector tabs */
+#listTabs {
+  display: flex;
+  gap: 0;
+  /* we'll rely on borders instead of space */
+}
+
+#listTabs .list-tab {
+  background: none;
+  color: inherit;
+  border: none;
+  padding: 0.5rem 1rem;
+  margin: 0;
+  border-right: 1px solid #ccc;
+  cursor: pointer;
+  font-weight: normal;
+  transition: color 0.2s;
+}
+
+/* Remove the trailing border on last tab */
+#listTabs .list-tab:last-child {
+  border-right: none;
+}
+
+/* Active state: underline instead of background */
+#listTabs .list-tab.active {
+  color: #000;
+  border-bottom: 2px solid #000;
+  font-weight: bold;
+}
+
+/* Hover state */
+#listTabs .list-tab:hover {
+  color: #333;
+}
+
+#listTabs .list-tab.dragging {
+  opacity: 0.5;
+}
+
+#listTabs .list-tab.drag-over {
+  outline: 2px dashed #aaa;
+}
+
+#listsContainer button,
+#listsPanel button[title="Edit row"],
+#listsPanel button[title="Delete row"] {
+  background: none !important;
+  border: none !important;
+  color: #0077cc !important;
+  cursor: pointer !important;
+  margin: 0;
+  vertical-align: middle;
+}
+
+#listsContainer button + button {
+  margin-left: 4px;
+}
+
+#listWrapper {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ------------------------------
+   Report Table
+------------------------------ */
+#reportTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+#reportTable th,
+#reportTable td {
+  border: 1px solid #d0decf;
+  padding: 8px 12px;
+  text-align: center;
+}
+
+#reportTable th {
+  background: linear-gradient(to right, #d7e8d0, #e3d4c9);
+  color: #2f3e40;
+}
+
+#reportTable td:first-child {
+  text-align: left;
+}
+
+#reportTable tbody tr:nth-child(even) {
+  background-color: #f8f5f0;
+}
+
+.report-panel {
+  background: rgba(255, 255, 255, 0.85);
+  padding: 20px;
+  border: 1px solid #d0decf;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  overflow-x: auto;
+  /* allow wide tables to scroll */
+}
+
+.report-panel canvas {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Green dot indicators for task completions */
+.completion-table {
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+.completion-table th,
+.completion-table td {
+  padding: 4px;
+  text-align: center;
+}
+.completion-table th:first-child,
+.completion-table td:first-child {
+  text-align: right;
+  padding-right: 8px;
+}
+
+.completion-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ccc;
+}
+
+.completion-dot.completed {
+  background: #4caf50;
+}
+
+/* Ensure list tables remain readable on mobile */
+#listsPanel table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+#listsPanel th,
+#listsPanel td {
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+#listsPanel li {
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+
+
+
+/* Handle for resizing list columns */
+#listsPanel .col-resizer {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+}
+
+#listsPanel .list-resizer {
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  width: 100%;
+  height: 6px;
+  cursor: row-resize;
+}
+
+/* Metrics summary table */
+#genericStatsSummary table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+#genericStatsSummary th,
+#genericStatsSummary td {
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+
+#travelPanel table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+#travelPanel th,
+#travelPanel td {
+  border: 1px solid #d0decf;
+  padding: 6px;
+  text-align: left;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+
+#travelPanel tbody tr:nth-child(even) {
+  background-color: #f8f5f0;
+}
+
+#travelPanel tr.selected-row {
+  background-color: #fff8b3;
+}
+
+/* Place search bar */
+#placeSearchRow {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+#placeSearchRow input {
+  max-width: 260px;
+}
+
+#placeSearchRow button {
+  /* Override global button margin so the buttons align with the input */
+  margin-top: 0;
+}
+
+/* Prevent horizontal overflow of travel table on small screens */
+#travelPanel .full-column {
+  overflow-x: auto;
+}
+/* show weather next to each hourly label */
+#todaySchedule .hour-weather {
+  margin-left: 4px;
+  font-weight: normal;
+}
+
+#travelMapWrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
+
+#travelMap {
+  flex: 0 1 66%;
+  width: 100%;
+  height: 300px;
+  border: 1px solid #ccc;
+}
+
+#travelTagFilters {
+  flex: 1 1 33%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+#placeTags {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+#placeTags label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.rain-percent {
+  color: blue;
+}
+
+#travelTagFilters button {
+  width: 100%;
+  margin-bottom: 4px;
+  box-sizing: border-box;
+  white-space: normal;
+}
+
+#showVisitedLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 0;
+}
+
+#travelTable td.visited-icon {
+  color: green;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  #showVisitedLabel {
+    margin-left: 0;
+    white-space: normal;
+  }
+}
+
+#paginationControls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 8px 0;
+}
+
+#paginationControls button {
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  #listsContainer {
+    overflow-x: hidden;
+  }
+
+  #listTabs {
+    flex-wrap: wrap;
+  }
+
+  #listsPanel.main-layout {
+    align-items: stretch;
+    max-width: none;
+    width: 100%;
+  }
+
+  #listTabs,
+  #listWrapper,
+  #listsContainer,
+  #itemForm,
+  #listForm {
+    width: 100%;
+  }
+
+  /* tables inside report panels and stats summary should scroll */
+  .report-panel {
+    overflow-x: auto;
+  }
+
+  #genericStatsSummary {
+    overflow-x: visible;
+  }
+
+  #genericStatsSummary table,
+  #genericStatsSummary thead,
+  #genericStatsSummary tbody,
+  #genericStatsSummary tr,
+  #genericStatsSummary th,
+  #genericStatsSummary td {
+    display: block;
+    width: 100%;
+  }
+
+  #genericStatsSummary thead {
+    display: none;
+  }
+
+  #genericStatsSummary tr {
+    margin-bottom: 12px;
+    border: 1px solid #ccc;
+    padding: 8px;
+    border-radius: 4px;
+  }
+
+  #genericStatsSummary td {
+    border: none;
+    padding: 4px 8px;
+    position: relative;
+  }
+
+  #genericStatsSummary td::before {
+    content: attr(data-label) ": ";
+    font-weight: bold;
+    display: inline-block;
+    width: 45%;
+  }
+
+  #travelTable,
+  #travelTable thead,
+  #travelTable tbody,
+  #travelTable tr,
+  #travelTable th,
+  #travelTable td {
+    display: block;
+    width: 100%;
+  }
+
+  #travelTable thead {
+    display: none;
+  }
+
+  #travelTable tr {
+    margin-bottom: 12px;
+    border: 1px solid #ccc;
+    padding: 8px;
+    border-radius: 4px;
+  }
+
+  #travelTable td {
+    border: none;
+    padding: 4px 8px;
+    position: relative;
+  }
+
+  #travelTable td::before {
+    content: attr(data-label) ": ";
+    font-weight: bold;
+    display: block;
+    width: auto;
+    margin-bottom: 4px;
+  }
+
+  #travelTable td.edit-cell::before {
+    content: none;
+  }
+
+  #listsPanel table,
+  #listsPanel thead,
+  #listsPanel tbody,
+  #listsPanel tr,
+  #listsPanel th,
+  #listsPanel td {
+    display: block;
+    width: 100%;
+  }
+
+  #listsPanel thead {
+    display: none;
+  }
+
+  #listsPanel tr {
+    margin-bottom: 12px;
+    border: 1px solid #ccc;
+    padding: 8px;
+    border-radius: 4px;
+  }
+
+  #listsPanel td {
+    border: none;
+    padding: 4px 8px;
+    position: relative;
+  }
+
+  #listsPanel td::before {
+    content: attr(data-label) ": ";
+    font-weight: bold;
+    display: block;
+    width: auto;
+    margin-bottom: 4px;
+  }
+  #listsPanel .col-resizer {
+    display: none;
+  }
+  #listsPanel .list-resizer {
+    display: none;
+  }
+}
+
+#metricPrevDayBtn,
+#metricNextDayBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+#metricPrevDayBtn:disabled,
+#metricNextDayBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Weekend calendar sections */
+.weekend-section {
+  border: 2px dashed #7aa68c;
+  padding: 8px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+}
+
+.weekend-section.current-weekend {
+  background-color: #ffffe0;
+}
+
+/* Tag filter buttons */
+.tag-filter-button {
+  background: #eee;
+  border: 1px solid #ccc;
+  color: #333;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 0 0 4px 0;
+  font-size: 0.8rem;
+}
+
+.tag-filter-button.active {
+  background: #7aa68c;
+  color: #fff;
+  border-color: #7aa68c;
+}
+
+/* Place search results list */
+.search-results {
+  list-style: none;
+  padding-left: 0;
+  margin: 8px 0;
+  max-height: 40vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  background: #fff;
+  border: 1px solid #ccc;
+}
+
+.search-results li {
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.search-results li:hover {
+  background: #eee;
+}
+
+#placeResults li.existing-place {
+  color: #333;
+}
+
+#placeResults li.search-result {
+  color: #4285F4;
+}
+
+/* Style the plus icon on the add-item button */
+.add-item-btn .plus-icon {
+  color: #fff;
+  margin-right: 4px;
+}
+
+/* Completed subgoal section */
+.completed-subgoal-section {
+  margin-top: 8px;
+}
+
+.completed-subgoal-section .completed-header {
+  cursor: pointer;
+  font-weight: bold;
+  margin-bottom: 4px;
+  margin-left: 20px;
+}
+
+/* Mobile: remove outer padding to avoid horizontal scrolling */
+@media (max-width: 600px) {
+  #goalsView {
+    margin: 0;
+    padding: 0;
+  }
+
+  #goalsView .left-column,
+  #goalsView .right-column,
+  #goalsView .full-column {
+    padding: 4px;
+  }
+
+  .navbar {
+    align-items: center;
+  }
+
+
+  .navbar-inner {
+    box-sizing: border-box;
+    flex-direction: row;
+    align-items: center;
+    position: relative;
+  }
+
+  .navbar .tabs {
+    order: 2;
+    width: 100%;
+    margin: 0;
+    /* occupy full width without side margins */
+  }
+
+  .navbar-right {
+    position: absolute;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    order: 1;
+    width: auto;
+    margin-top: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .navbar .tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .navbar .tabs {
+    scrollbar-width: none;
+  }
+
+  .main-layout {
+    padding: 0 8px;
+  }
+
+  /* Add breathing room for the budget tab */
+  #budgetPanel.main-layout {
+    padding: 0 10px;
+  }
+
+  /* Ensure list items span the full width on small screens */
+  li {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    display: block;
+  }
+
+  .settings-list {
+    flex-direction: column;
+  }
+
+  .settings-list > * {
+    width: 100%;
+  }
+}
+
+/* Decision tree styles */
+.tree,
+.tree ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+.tree li {
+  margin-left: 1.2em;
+  padding-left: 1.2em;
+  position: relative;
+}
+
+.tree li::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0.5em;
+  left: 0;
+  border-left: 1px solid #ccc;
+}
+
+.tree li::after {
+  content: '';
+  position: absolute;
+  top: 1em;
+  left: 0;
+  width: 1.2em;
+  border-top: 1px solid #ccc;
+}
+
+.tree>li::before {
+  border-left: none;
+}
+
+.decision-card {
+  background: #fff;
+  border-left: 4px solid #ffb347;
+  padding: 8px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.decision-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.decision-considerations {
+  font-size: 0.9em;
+  font-style: italic;
+  margin-bottom: 6px;
+  color: #555;
+}
+
+.decision-section {
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+/* Message for hidden goals */
+.hidden-info {
+  font-style: italic;
+  margin-top: 4px;
+}
+
+.goal-card.hidden-goal .button-row {
+  position: static;
+  transform: none;
+  margin-top: 6px;
+}
+
+.goal-card.hidden-goal .due-column {
+  margin-right: 0;
+}
+
+/* ----- Today Schedule ----- */
+#todaySchedule {
+  margin: 16px 0;
+}
+
+#todaySchedule .hour-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+#todaySchedule .hour-label {
+  /* widen to prevent overlap with hourly notes */
+  width: 90px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+#todaySchedule .time-box {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 2px;
+}
+
+#todaySchedule .hour-events {
+  min-height: 24px;
+  cursor: pointer;
+  touch-action: manipulation;
+  flex: 1;
+  min-width: 0;
+}
+
+#todaySchedule .hour-input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 2px;
+}
+
+#todaySchedule .hour-note {
+  white-space: pre-wrap;
+  display: block;
+  margin-left: auto;
+  margin-right: 4px;
+  text-align: right;
+}
+
+#todaySchedule .hour-row.comfortable-temp {
+  background-color: #e0f8e0;
+}
+
+#todaySchedule ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+/* Finances panel profiles */
+#profilesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.planning-profile {
+  flex: 1 1 300px;
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 8px;
+}
+
+/* Finances panel form layout */
+.planning-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.planning-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 400px;
+  flex: 0 0 400px;
+}
+
+.planning-form label {
+  flex: 1 1 160px;
+}
+
+.planning-form h3 {
+  flex-basis: 100%;
+  margin: 0 0 4px;
+}
+
+.planning-form .planning-section {
+  flex-basis: 100%;
+  border: 1px solid #d0decf;
+  border-radius: 6px;
+  padding: 8px;
+  margin-bottom: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.planning-columns {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 0;
+  align-items: flex-start;
+  overflow-x: auto;
+}
+
+.planning-right {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+#planningPanel .full-column {
+  overflow-x: auto;
+}
+#workingColumn,
+#retirementColumn {
+  overflow-x: auto;
+}
+
+#workingColumn table,
+#retirementColumn table {
+  width: max-content;
+  border-collapse: collapse;
+}
+
+#workingColumn th,
+#workingColumn td,
+#retirementColumn th,
+#retirementColumn td {
+  border: 1px solid #d0decf;
+  padding: 4px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+#workingColumn tbody tr:nth-child(even),
+#retirementColumn tbody tr:nth-child(even) {
+  background-color: #f8f5f0;
+}
+
+.finance-history table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.finance-history th,
+.finance-history td {
+  border: 1px solid #d0decf;
+  padding: 4px;
+  text-align: left;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+
+.finance-history tbody tr:nth-child(even) {
+  background-color: #f8f5f0;
+}
+
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+/* Mobile calendar view toggle */
+.calendar-mobile-tabs {
+  display: none;
+  margin-bottom: 8px;
+  gap: 4px;
+}
+
+.calendar-mobile-tab {
+  flex: 1 1 0;
+  padding: 6px;
+  border: 1px solid #ccc;
+  background: #f8f8f8;
+  cursor: pointer;
+}
+
+.calendar-mobile-tab.active {
+  background: #7aa68c;
+  color: #fff;
+}
+
+.movie-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.movie-tab {
+  flex: 1 1 0;
+  padding: 6px;
+  border: 1px solid #ccc;
+  background: #f8f8f8;
+  cursor: pointer;
+}
+
+.movie-tab.active {
+  background: #7aa68c;
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .calendar-mobile-tabs {
+    display: flex;
+  }
+
+  #calendarPanel.mobile-daily #todaySchedule {
+    display: none;
+  }
+
+  #calendarPanel.mobile-hourly #calendarContent {
+    display: none;
+  }
+}
+
+/* Budget layout */
+#budgetLayout {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+#budgetTable {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+#budgetTable th,
+#budgetTable td {
+  border: 1px solid #ccc;
+  padding: 4px;
+}
+
+#budgetTable th:first-child,
+#budgetTable td:first-child {
+  text-align: left;
+}
+
+.section-row th {
+  background-color: #f0f0f0;
+  text-align: left;
+}
+
+.actions button {
+  margin-left: 4px;
+}
+
+/* Compact summary and action layout for budget panel */
+.budget-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.budget-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.budget-summary span {
+  white-space: nowrap;
+}
+
+.budget-summary-table {
+  border-collapse: collapse;
+}
+
+.budget-summary-table th,
+.budget-summary-table td {
+  padding-right: 8px;
+  white-space: nowrap;
+}
+
+.budget-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* Align budget panel content to the left instead of centering */
+#budgetPanel.main-layout {
+  justify-content: flex-start;
+}
+
+@media (max-width: 600px) {
+  #budgetTable th,
+  #budgetTable td {
+    padding: 2px;
+  }
+}
+
+/* Layout for list row editor */
+#rowEditorForm .editor-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 0.5rem;
+}
+
+@media (max-width: 600px) {
+  #rowEditorForm {
+    width: 95%;
+  }
+  #rowEditorForm .editor-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  #rowEditorForm .editor-row > * {
+    width: 100% !important;
+    margin-right: 0;
+  }
+  #rowEditorForm .editor-row button {
+    align-self: flex-start;
+  }
+}
+
+/* Movies panel styling */
+.tmdb-notice {
+  text-align: center;
+  font-size: 0.8rem;
+  margin: 2rem 0;
+}
+
+.movie-card {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 0.5rem;
+  background: #f9f9f9;
+}
+
+.movie-card img {
+  width: 100px;
+  border-radius: 4px;
+}
+
+.movie-info {
+  flex: 1;
+}
+
+.movie-info h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+}
+
+.movie-meta {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0 0;
+}
+
+.movie-meta li {
+  font-size: 0.85rem;
+}
+
+#movieList ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* GeoScore admin styles */
+.geoscore-answers {
+  margin: 8px 0;
+}
+
+.geoscore-answer-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.geoscore-answer-row input[type='text'] {
+  flex: 1;
+}
+
+.geoscore-answer-row input[type='number'] {
+  width: 80px;
+}
+
+#geoscoreForm textarea {
+  width: 100%;
+  margin-top: 8px;
+}
+
