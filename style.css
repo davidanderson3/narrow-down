@@ -180,6 +180,24 @@ body.mild-glow {
   height: 6px;
 }
 
+/* base styling for tab buttons */
+.tabs .tab-button {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  background: #f8f8f8;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.tabs .tab-button.active {
+  background: #7aa68c;
+  color: #fff;
+}
+
+.tabs .tab-button:hover:not(.active) {
+  background: #e0e0e0;
+}
+
 .navbar-right button:hover {
   background-color: #f2f2f2;
 }
@@ -234,6 +252,7 @@ body.mild-glow {
     padding: 12px 16px;
     border: none;
     border-bottom: 1px solid #eee;
+    border-radius: 0;
   }
 
   .mobile-menu .navbar-right {
