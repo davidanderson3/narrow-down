@@ -11,7 +11,7 @@ describe('initMoviesPanel', () => {
     window.tmdbApiKey = 'TEST_KEY';
   });
 
-  it('renders movie titles with review info from TMDB', async () => {
+    it('renders movie titles with review info from TMDB', async () => {
     const apiData = {
       results: [
         {
@@ -90,6 +90,56 @@ describe('initMoviesPanel', () => {
       7,
       'https://api.themoviedb.org/3/genre/movie/list?api_key=TEST_KEY'
     );
+  });
+
+  it('sorts movies by release date closest to today', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2024-01-15'));
+
+    const apiData = {
+      results: [
+        {
+          title: 'Far Movie',
+          release_date: '2023-12-31',
+          vote_average: 7,
+          vote_count: 20,
+          genre_ids: [],
+          id: 1
+        },
+        {
+          title: 'Near Movie',
+          release_date: '2024-01-20',
+          vote_average: 6,
+          vote_count: 20,
+          genre_ids: [],
+          id: 2
+        }
+      ]
+    };
+    const emptyPage = { results: [] };
+    const creditsData = { cast: [], crew: [] };
+    const genreData = { genres: [] };
+
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(apiData) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(emptyPage) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(emptyPage) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(emptyPage) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(emptyPage) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(creditsData) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(creditsData) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(genreData) });
+
+    try {
+      await initMoviesPanel();
+
+      const items = [...document.querySelectorAll('#movieList > ul > li')];
+      expect(items[0].textContent).toContain('Near Movie');
+      expect(items[1].textContent).toContain('Far Movie');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('uses entered API key and caches it', async () => {

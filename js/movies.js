@@ -286,6 +286,7 @@ export async function initMoviesPanel() {
         }
       }
 
+      const today = new Date();
       const movies = moviesData
         .slice(0, 100)
         .filter(
@@ -295,12 +296,15 @@ export async function initMoviesPanel() {
             !saved.has(String(m.id)) &&
             !watched.has(String(m.id))
         )
-        .sort(
-          (a, b) =>
-            new Date(b.release_date || 0) - new Date(a.release_date || 0) ||
+        .sort((a, b) => {
+          const diffA = Math.abs(new Date(a.release_date || 0) - today);
+          const diffB = Math.abs(new Date(b.release_date || 0) - today);
+          return (
+            diffA - diffB ||
             b.vote_average - a.vote_average ||
             b.popularity - a.popularity
-        );
+          );
+        });
       if (movies.length === 0) {
         listEl.textContent = 'No movies found.';
         return;
