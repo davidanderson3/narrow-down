@@ -9,7 +9,6 @@ import { initTabs } from './tabs.js';
 import { initButtonStyles } from './buttonStyles.js';
 import { initTabReports } from './tabReports.js';
 import { loadHiddenTabs, applyHiddenTabs, saveHiddenTabs } from './settings.js';
-import { clearPlanningCache } from './planning.js';
 import { applySiteName } from './siteName.js';
 import { initDescriptions } from './descriptions.js';
 
@@ -351,14 +350,10 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   const SIGNED_OUT_TABS = [
-    'dailyPanel',
-    'projectsPanel',
-    'calendarPanel',
-    'metricsPanel',
-    'listsPanel',
-    'travelPanel',
-    'planningPanel',
-    'budgetPanel'
+    'moviesPanel',
+    'showsPanel',
+    'recipesPanel',
+    'restaurantsPanel'
   ];
 
   function showOnlySignedOutTabs() {
@@ -387,8 +382,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Re-render UI components whenever decisions are updated
   window.addEventListener('decisionsUpdated', () => {
-    renderQueue = renderQueue.then(() => renderGoalsAndSubitems());
-    if (document.querySelector('.tab-button.active')?.dataset.target === 'dailyPanel') {
+    if (document.getElementById('goalList')) {
+      renderQueue = renderQueue.then(() => renderGoalsAndSubitems());
+    }
+    if (
+      document.getElementById('dailyPanel') &&
+      document.querySelector('.tab-button.active')?.dataset.target === 'dailyPanel'
+    ) {
       renderDailyTasks(currentUser, db);
     }
     initTabReports(currentUser, db);
@@ -405,14 +405,15 @@ window.addEventListener('DOMContentLoaded', () => {
       window.openGoalIds?.clear?.();
 
       if (!user) {
-        clearPlanningCache();
         if (goalsView) goalsView.style.display = '';
         await initTabs(null, db);
         const hidden = await loadHiddenTabs();
         applyHiddenTabs(hidden);
         showOnlySignedOutTabs();
         // Render sample routine tasks for visitors
-        await renderDailyTasks(null, db);
+        if (document.getElementById('dailyPanel')) {
+          await renderDailyTasks(null, db);
+        }
         if (hiddenTabsTimer) clearInterval(hiddenTabsTimer);
         hiddenTabsTimer = setInterval(async () => {
           const h = await loadHiddenTabs();
@@ -421,8 +422,13 @@ window.addEventListener('DOMContentLoaded', () => {
         }, 60 * 1000);
         const tabsEl = document.getElementById('tabsContainer');
         if (tabsEl) tabsEl.style.visibility = 'visible';
-        renderGoalsAndSubitems();
-        if (document.querySelector('.tab-button.active')?.dataset.target === 'dailyPanel') {
+        if (document.getElementById('goalList')) {
+          renderGoalsAndSubitems();
+        }
+        if (
+          document.getElementById('dailyPanel') &&
+          document.querySelector('.tab-button.active')?.dataset.target === 'dailyPanel'
+        ) {
           renderDailyTasks(null, db);
         }
         initTabReports(null, db);
@@ -430,8 +436,6 @@ window.addEventListener('DOMContentLoaded', () => {
       }
 
       if (goalsView) goalsView.style.display = '';
-
-      clearPlanningCache();
 
       await initTabs(user, db);
       const hidden = await loadHiddenTabs();
@@ -449,15 +453,15 @@ window.addEventListener('DOMContentLoaded', () => {
           await window.initTravelPanel();
         } catch (err) {
           console.error('Failed to initialize travel panel after sign-in', err);
+        }
       }
-    }
-    if (window.initWeatherPanel) {
-      try {
-        await window.initWeatherPanel();
-      } catch (err) {
-        console.error('Failed to initialize weather panel after sign-in', err);
+      if (window.initWeatherPanel) {
+        try {
+          await window.initWeatherPanel();
+        } catch (err) {
+          console.error('Failed to initialize weather panel after sign-in', err);
+        }
       }
-    }
       if (window.initPlanningPanel) {
         try {
           await window.initPlanningPanel();

@@ -48,7 +48,7 @@ async function stubExternal(page) {
   });
 }
 
-test('can add a daily task via UI', async ({ page }) => {
+test('can switch between media tabs', async ({ page }) => {
   await stubExternal(page);
   await page.goto('http://localhost:3002');
   await page.evaluate(() => {
@@ -56,16 +56,14 @@ test('can add a daily task via UI', async ({ page }) => {
     if (tabs) tabs.style.visibility = 'visible';
   });
 
-  // open Routine tab
-  await page.waitForSelector('button[data-target="dailyPanel"]', { state: 'visible' });
-  await page.click('button[data-target="dailyPanel"]');
+  await page.waitForSelector('button[data-target="moviesPanel"]', { state: 'visible' });
+  await expect(page.locator('#moviesPanel')).toBeVisible();
 
-  // open add modal
-  await page.click('#bottomAddBtn');
-  await page.check('input[type=radio][value=daily]');
-  await page.check('input[type=radio][name=bottomAddSection][value=morning]');
-  await page.fill('#bottomAddText', 'Playwright Task');
-  await page.click('#bottomAddSubmit');
+  await page.click('button[data-target="showsPanel"]');
+  await expect(page.locator('#showsPanel')).toBeVisible();
+  await expect(page.locator('#moviesPanel')).toBeHidden();
 
-  await expect(page.locator('#dailyTasksList')).toContainText('Playwright Task');
+  await page.click('button[data-target="recipesPanel"]');
+  await expect(page.locator('#recipesPanel')).toBeVisible();
+  await expect(page.locator('#showsPanel')).toBeHidden();
 });

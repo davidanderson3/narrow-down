@@ -1,38 +1,41 @@
 import { currentUser } from './auth.js';
 import { loadTabOrder } from './settings.js';
 
+const RESTAURANTS_READY_EVENT = 'restaurantsPanelReady';
+let restaurantsInitPromise = null;
+
+function ensureRestaurantsPanelInitialized() {
+  if (typeof window.initRestaurantsPanel === 'function') {
+    return window.initRestaurantsPanel();
+  }
+
+  if (!restaurantsInitPromise) {
+    restaurantsInitPromise = new Promise(resolve => {
+      const handler = () => {
+        if (typeof window.initRestaurantsPanel === 'function') {
+          window.removeEventListener(RESTAURANTS_READY_EVENT, handler);
+          resolve(window.initRestaurantsPanel());
+        }
+      };
+      window.addEventListener(RESTAURANTS_READY_EVENT, handler, { once: true });
+    });
+  }
+
+  return restaurantsInitPromise;
+}
+
 export const PANELS = [
-  'dailyPanel',
-  'projectsPanel',
-  'calendarPanel',
-  'metricsPanel',
-  'listsPanel',
-  'travelPanel',
   'moviesPanel',
   'showsPanel',
   'recipesPanel',
-  'planningPanel',
-  'budgetPanel',
-  'backupsPanel',
-  'geoscorePanel',
-  'geolayersPanel'
+  'restaurantsPanel'
 ];
 
 export const PANEL_NAMES = {
-  projectsPanel: 'Projects',
-  calendarPanel: 'Calendar',
-  dailyPanel: 'Routine',
-  metricsPanel: 'Metrics',
-  listsPanel: 'Lists',
-  travelPanel: 'Places',
   moviesPanel: 'Movies',
   showsPanel: 'Live Music',
   recipesPanel: 'Recipes',
-  planningPanel: 'Finances',
-  budgetPanel: 'Budget',
-  backupsPanel: 'Backups',
-  geoscorePanel: 'GeoScore',
-  geolayersPanel: 'GeoLayers'
+  restaurantsPanel: 'Restaurants'
 };
 
 let tabsInitialized = false;
@@ -46,9 +49,7 @@ export async function initTabs(user, db) {
 
   const container = document.getElementById('tabsContainer');
   let tabButtons = Array.from(document.querySelectorAll('.tab-button'));
-  let panels = user
-    ? PANELS
-    : PANELS.filter(id => id !== 'backupsPanel' && id !== 'geolayersPanel');
+  let panels = [...PANELS];
 
   try {
     const saved = await loadTabOrder();
@@ -75,12 +76,6 @@ export async function initTabs(user, db) {
       // 2) show/hide panels
       const target = btn.dataset.target;
 
-      // Clear routine list before displaying to avoid flashing stale tasks
-      if (target === 'dailyPanel') {
-        const list = document.getElementById('dailyTasksList');
-        if (list) list.innerHTML = '';
-      }
-
       panels.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = (id === target) ? 'flex' : 'none';
@@ -93,38 +88,17 @@ export async function initTabs(user, db) {
       history.pushState(null, '', `#${target}`);
 
       // 4) init dynamic content
-      if (target === 'dailyPanel') {
-        await window.renderDailyTasks(currentUser, db);
-      }
-      else if (target === 'metricsPanel') {
-        await window.initMetricsUI();
-      }
-      else if (target === 'listsPanel') {
-        await window.initListsPanel(currentUser, db);
-      }
-      else if (target === 'travelPanel') {
-        await window.initTravelPanel();
-      }
-      else if (target === 'moviesPanel') {
+      if (target === 'moviesPanel') {
         await window.initMoviesPanel();
       }
-        else if (target === 'showsPanel') {
-          await window.initShowsPanel();
-        }
-        else if (target === 'recipesPanel') {
-          await window.initRecipesPanel();
-        }
-        else if (target === 'planningPanel') {
-          await window.initPlanningPanel();
-        }
-      else if (target === 'budgetPanel') {
-        await window.initBudgetPanel();
+      else if (target === 'showsPanel') {
+        await window.initShowsPanel();
       }
-      else if (target === 'backupsPanel') {
-        await window.initBackupsPanel();
+      else if (target === 'recipesPanel') {
+        await window.initRecipesPanel();
       }
-      else if (target === 'geoscorePanel') {
-        window.initGeoScorePanel();
+      else if (target === 'restaurantsPanel') {
+        await ensureRestaurantsPanelInitialized();
       }
     });
   });
@@ -151,40 +125,17 @@ export async function initTabs(user, db) {
   // on load, fire any needed init. If DOMContentLoaded already fired,
   // run immediately instead of waiting for the event.
   const runInitial = () => {
-    if (initial === 'dailyPanel') {
-      if (typeof window.renderDailyTasks === 'function') {
-        window.renderDailyTasks(currentUser, db);
-      }
-    }
-    else if (initial === 'metricsPanel') {
-      window.initMetricsUI();
-    }
-    else if (initial === 'listsPanel') {
-      window.initListsPanel(currentUser, db);
-    }
-    else if (initial === 'travelPanel') {
-      window.initTravelPanel();
-    }
-    else if (initial === 'moviesPanel') {
+    if (initial === 'moviesPanel') {
       window.initMoviesPanel();
     }
-      else if (initial === 'showsPanel') {
-        window.initShowsPanel();
-      }
-      else if (initial === 'recipesPanel') {
-        window.initRecipesPanel();
-      }
-      else if (initial === 'planningPanel') {
-        window.initPlanningPanel();
-      }
-    else if (initial === 'budgetPanel') {
-      window.initBudgetPanel();
+    else if (initial === 'showsPanel') {
+      window.initShowsPanel();
     }
-    else if (initial === 'backupsPanel') {
-      window.initBackupsPanel();
+    else if (initial === 'recipesPanel') {
+      window.initRecipesPanel();
     }
-    else if (initial === 'geoscorePanel') {
-      window.initGeoScorePanel();
+    else if (initial === 'restaurantsPanel') {
+      ensureRestaurantsPanelInitialized();
     }
   };
 

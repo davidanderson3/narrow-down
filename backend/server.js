@@ -15,6 +15,7 @@ try {
 const execFileAsync = util.promisify(execFile);
 const app = express();
 const PORT = process.env.PORT || 3002;
+const HOST = process.env.HOST || (process.env.VITEST ? '127.0.0.1' : '0.0.0.0');
 
 // Enable CORS for all routes so the frontend can reach the API
 app.use(cors());
@@ -152,6 +153,29 @@ app.get('/api/spotify-client-id', (req, res) => {
   res.json({ clientId });
 });
 
+app.get('/api/restaurants', async (req, res) => {
+  const { city, cuisine = '' } = req.query || {};
+  const apiKey = req.get('x-api-key') || req.query.apiKey;
+  if (!apiKey) {
+    return res.status(400).json({ error: 'missing api key' });
+  }
+  if (!city) {
+    return res.status(400).json({ error: 'missing city' });
+  }
+  const params = new URLSearchParams({ city: String(city), limit: '20' });
+  if (cuisine) params.set('cuisine', String(cuisine));
+  try {
+    const apiRes = await fetch(`https://api.api-ninjas.com/v1/restaurant?${params.toString()}`, {
+      headers: { 'X-Api-Key': apiKey }
+    });
+    const body = await apiRes.text();
+    res.status(apiRes.status).type(apiRes.headers.get('content-type') || 'application/json').send(body);
+  } catch (err) {
+    console.error('Restaurant proxy failed', err);
+    res.status(500).json({ error: 'failed' });
+  }
+});
+
 // --- Ticketmaster proxy ---
 app.get('/api/ticketmaster', async (req, res) => {
   const { apiKey, keyword } = req.query || {};
@@ -273,10 +297,6 @@ async function ensureAllCities() {
   }
 }
 
-if (process.env.NODE_ENV !== 'test' && !process.env.VITEST) {
-  ensureAllCities().catch(err => console.error('City prefetch failed', err));
-}
-
 function dailySeed() {
   const today = new Date().toISOString().slice(0,10);
   let seed = 0;
@@ -374,9 +394,15 @@ app.get('/api/transactions', async (req, res) => {
   }
 });
 
-const server = app.listen(PORT, () => {
-  console.log(`✅ Serving static files at http://localhost:${PORT}`);
-});
+const shouldListen = process.env.NODE_ENV !== 'test';
 
-module.exports = server;
-
+let server = null;
+if (shouldListen) {
+  server = app.listen(PORT, HOST, () => {
+    console.log(`✅ Serving static files at http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}`);
+  });
+  module.exports = server;
+  module.exports.app = app;
+} else {
+  module.exports = app;
+}

@@ -1,7 +1,7 @@
 const API_BASE_URL =
   (typeof window !== 'undefined' && window.apiBaseUrl) ||
   (typeof process !== 'undefined' && process.env.API_BASE_URL) ||
-  'https://dashboard-6aih.onrender.com';
+  (typeof window !== 'undefined' ? window.location.origin : '');
 
 function randomString(length) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -235,4 +235,3 @@ export async function initShowsPanel() {
 }
 
 window.initShowsPanel = initShowsPanel;
-

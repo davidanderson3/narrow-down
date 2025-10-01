@@ -248,33 +248,21 @@ describe('shift+A hotkey', () => {
 });
 
   describe('signed-out tabs', () => {
-    it('hides backups and geolayers when not signed in', async () => {
+  it('keeps media tabs visible when not signed in', async () => {
     const dom = new JSDOM(`
       <button id="signupBtn"></button>
       <button id="loginBtn"></button>
       <div id="goalsView"></div>
       <div id="tabsContainer">
-        <button class="tab-button" data-target="dailyPanel"></button>
-        <button class="tab-button" data-target="projectsPanel"></button>
-        <button class="tab-button" data-target="calendarPanel"></button>
-        <button class="tab-button" data-target="metricsPanel"></button>
-        <button class="tab-button" data-target="listsPanel"></button>
-        <button class="tab-button" data-target="travelPanel"></button>
-        <button class="tab-button" data-target="planningPanel"></button>
-        <button class="tab-button" data-target="budgetPanel"></button>
-        <button class="tab-button" data-target="backupsPanel"></button>
-        <button class="tab-button" data-target="geolayersPanel"></button>
+        <button class="tab-button" data-target="moviesPanel"></button>
+        <button class="tab-button" data-target="showsPanel"></button>
+        <button class="tab-button" data-target="recipesPanel"></button>
+        <button class="tab-button" data-target="restaurantsPanel"></button>
       </div>
-      <div id="dailyPanel"></div>
-      <div id="projectsPanel"></div>
-      <div id="calendarPanel"></div>
-      <div id="metricsPanel"></div>
-      <div id="listsPanel"></div>
-      <div id="travelPanel"></div>
-      <div id="planningPanel"></div>
-      <div id="budgetPanel"></div>
-      <div id="backupsPanel"></div>
-      <div id="geolayersPanel"></div>
+      <div id="moviesPanel"></div>
+      <div id="showsPanel"></div>
+      <div id="recipesPanel"></div>
+      <div id="restaurantsPanel"></div>
     `);
     global.window = dom.window;
     global.document = dom.window.document;
@@ -291,13 +279,15 @@ describe('shift+A hotkey', () => {
     dom.window.dispatchEvent(new dom.window.Event('DOMContentLoaded'));
     await new Promise(r => setTimeout(r, 0));
 
-    const backupsBtn = dom.window.document.querySelector('.tab-button[data-target="backupsPanel"]');
-    const geolayersBtn = dom.window.document.querySelector('.tab-button[data-target="geolayersPanel"]');
-    const dailyBtn = dom.window.document.querySelector('.tab-button[data-target="dailyPanel"]');
+    const moviesBtn = dom.window.document.querySelector('.tab-button[data-target="moviesPanel"]');
+    const showsBtn = dom.window.document.querySelector('.tab-button[data-target="showsPanel"]');
+    const recipesBtn = dom.window.document.querySelector('.tab-button[data-target="recipesPanel"]');
+    const restaurantsBtn = dom.window.document.querySelector('.tab-button[data-target="restaurantsPanel"]');
 
-    expect(backupsBtn.style.display).toBe('none');
-    expect(geolayersBtn.style.display).toBe('none');
-    expect(dailyBtn.style.display).not.toBe('none');
+    expect(moviesBtn.style.display).not.toBe('none');
+    expect(showsBtn.style.display).not.toBe('none');
+    expect(recipesBtn.style.display).not.toBe('none');
+    expect(restaurantsBtn.style.display).not.toBe('none');
     });
   });
 
@@ -329,7 +319,7 @@ describe('initial load', () => {
     dom.window.dispatchEvent(new dom.window.Event('DOMContentLoaded'));
     const cb = auth.initAuth.mock.calls[0][1];
     await cb(null);
-    expect(daily.renderDailyTasks).toHaveBeenCalled();
+    expect(daily.renderDailyTasks).not.toHaveBeenCalled();
   });
 });
 

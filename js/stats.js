@@ -469,6 +469,7 @@ async function renderStatsSummary(dayKey = activeMetricsDate) {
     return tsA - tsB;
   });
   const container = document.getElementById('genericStatsSummary');
+  if (!container) return;
   Object.assign(container.style, { width: '100%', maxWidth: '100%', padding: '0', margin: '0' });
   container.innerHTML = '';
   const table = document.createElement('table');

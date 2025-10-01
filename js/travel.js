@@ -621,6 +621,40 @@ export async function initTravelPanel() {
     async function loadTripAdvisorPlaces() {
       const listEl = document.getElementById('tripAdvisorList');
       if (!listEl) return;
+
+      const getStoredKey = () => {
+        try {
+          return localStorage.getItem('tripAdvisorApiKey') || '';
+        } catch (err) {
+          console.warn('Unable to read stored TripAdvisor key', err);
+          return '';
+        }
+      };
+
+      const setStoredKey = key => {
+        if (!key) return;
+        try {
+          localStorage.setItem('tripAdvisorApiKey', key);
+        } catch (err) {
+          console.warn('Unable to persist TripAdvisor key', err);
+        }
+      };
+
+      const apiKey = window.tripAdvisorApiKey || getStoredKey();
+      if (!apiKey) {
+        listEl.innerHTML = '';
+        const li = document.createElement('li');
+        li.innerHTML =
+          'Add your RapidAPI key to fetch nearby attractions. Open the console and run <code>localStorage.setItem(\'tripAdvisorApiKey\', \'YOUR_KEY\')</code>, or set <code>window.tripAdvisorApiKey</code> before loading the page.';
+        listEl.appendChild(li);
+        return;
+      }
+
+      if (!window.tripAdvisorApiKey) {
+        window.tripAdvisorApiKey = apiKey;
+        setStoredKey(apiKey);
+      }
+
       const [lat, lon] = userCoords || [0, 0];
       const params = new URLSearchParams({
         latitude: lat,
@@ -628,19 +662,28 @@ export async function initTravelPanel() {
         limit: '5',
         currency: 'USD'
       });
-      const apiKey = window.tripAdvisorApiKey || '';
+
       try {
         const res = await fetch(
           `https://travel-advisor.p.rapidapi.com/attractions/list-by-latlng?${params.toString()}`,
-          apiKey
-            ? {
-                headers: {
-                  'X-RapidAPI-Key': apiKey,
-                  'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
-                }
-              }
-            : {}
+          {
+            headers: {
+              'X-RapidAPI-Key': apiKey,
+              'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
+            }
+          }
         );
+
+        if (!res.ok) {
+          const message =
+            res.status === 401
+              ? 'TripAdvisor API key is missing or invalid. Verify the key in RapidAPI.'
+              : `TripAdvisor request failed (${res.status}).`;
+          console.error('TripAdvisor fetch failed', res.status, res.statusText);
+          listEl.textContent = message;
+          return;
+        }
+
         const data = await res.json();
         const places = data.data || data.results || [];
         listEl.innerHTML = '';
@@ -669,7 +712,7 @@ export async function initTravelPanel() {
         });
       } catch (err) {
         console.error('TripAdvisor fetch failed', err);
-        listEl.textContent = 'Failed to load places.';
+        listEl.textContent = 'Failed to load places. Check your network connection and API key.';
       }
     }
 
