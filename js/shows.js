@@ -50,8 +50,14 @@ export async function initShowsPanel() {
     console.error('Failed to fetch Spotify client ID', err);
   }
   if (!spotifyClientId) {
-    listEl.textContent = 'Spotify client ID not configured.';
-    return;
+    listEl.textContent =
+      'Spotify login is currently unavailable. Paste a Spotify token manually to continue.';
+    if (statusEl) {
+      statusEl.textContent = 'Spotify login unavailable.';
+    }
+    if (tokenBtn) {
+      tokenBtn.setAttribute('aria-disabled', 'true');
+    }
   }
 
   const redirectUri = window.location.origin + window.location.pathname;
@@ -80,7 +86,10 @@ export async function initShowsPanel() {
 
   const startAuth = async () => {
     if (!spotifyClientId) {
-      listEl.textContent = 'Spotify client ID not configured.';
+      listEl.textContent = 'Spotify login is currently unavailable.';
+      if (statusEl) {
+        statusEl.textContent = 'Spotify login unavailable.';
+      }
       return;
     }
     const verifier = randomString(64);
@@ -107,34 +116,41 @@ export async function initShowsPanel() {
   const params = new URLSearchParams(window.location.search);
   const authCode = params.get('code');
   if (authCode && tokenInput) {
-    try {
-      const verifier =
-        (typeof localStorage !== 'undefined' && localStorage.getItem('spotifyCodeVerifier')) || '';
-      const body = new URLSearchParams({
-        grant_type: 'authorization_code',
-        code: authCode,
-        redirect_uri: redirectUri,
-        client_id: spotifyClientId,
-        code_verifier: verifier
-      });
-      const res = await fetch('https://accounts.spotify.com/api/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: body.toString()
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const accessToken = data.access_token || '';
-        if (tokenInput) tokenInput.value = '';
-        if (typeof localStorage !== 'undefined') {
-          localStorage.setItem('spotifyToken', accessToken);
-        }
-        updateSpotifyStatus();
+    if (!spotifyClientId) {
+      if (statusEl) {
+        statusEl.textContent = 'Spotify login unavailable.';
       }
-    } catch (err) {
-      console.error('Failed to exchange code', err);
-    } finally {
       window.history.replaceState({}, '', redirectUri);
+    } else {
+      try {
+        const verifier =
+          (typeof localStorage !== 'undefined' && localStorage.getItem('spotifyCodeVerifier')) || '';
+        const body = new URLSearchParams({
+          grant_type: 'authorization_code',
+          code: authCode,
+          redirect_uri: redirectUri,
+          client_id: spotifyClientId,
+          code_verifier: verifier
+        });
+        const res = await fetch('https://accounts.spotify.com/api/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: body.toString()
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const accessToken = data.access_token || '';
+          if (tokenInput) tokenInput.value = '';
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('spotifyToken', accessToken);
+          }
+          updateSpotifyStatus();
+        }
+      } catch (err) {
+        console.error('Failed to exchange code', err);
+      } finally {
+        window.history.replaceState({}, '', redirectUri);
+      }
     }
   }
 
