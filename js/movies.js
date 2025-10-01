@@ -40,6 +40,69 @@ function appendMeta(metaList, label, value) {
   metaList.appendChild(mi);
 }
 
+const creditCache = new Map();
+
+async function fetchCreditsForMovie(movieId, apiKey) {
+  const id = String(movieId || '');
+  if (!id || !apiKey) return {};
+  const cacheKey = `${apiKey}:${id}`;
+  if (creditCache.has(cacheKey)) {
+    return creditCache.get(cacheKey);
+  }
+
+  try {
+    const creditUrl = `https://api.themoviedb.org/3/movie/${id}/credits?api_key=${apiKey}`;
+    const creditRes = await fetch(creditUrl);
+    if (!creditRes.ok) throw new Error('Credits fetch failed');
+    const creditData = await creditRes.json();
+    const actors = (creditData.cast || [])
+      .slice(0, 5)
+      .map(c => c.name)
+      .filter(Boolean)
+      .join(', ');
+    const director = (creditData.crew || []).find(c => c.job === 'Director');
+    const result = {
+      ...(actors ? { actors } : {}),
+      ...(director?.name ? { director: director.name } : {})
+    };
+    creditCache.set(cacheKey, result);
+    return result;
+  } catch (err) {
+    creditCache.set(cacheKey, {});
+    return {};
+  }
+}
+
+function applyCredits(movie, credits) {
+  if (!movie || !credits) return;
+  if (credits.actors && !movie.actors) {
+    movie.actors = credits.actors;
+  }
+  if (credits.director && !movie.director) {
+    movie.director = credits.director;
+  }
+}
+
+function appendCredits(info, movie) {
+  if (!movie || (!movie.director && !movie.actors)) return;
+  const credits = document.createElement('p');
+  credits.className = 'movie-credits';
+  const parts = [];
+  if (movie.director) {
+    parts.push(['Director', movie.director]);
+  }
+  if (movie.actors) {
+    parts.push(['Actors', movie.actors]);
+  }
+  parts.forEach((part, idx) => {
+    if (idx) credits.append(' · ');
+    const strong = document.createElement('strong');
+    strong.textContent = `${part[0]}:`;
+    credits.append(strong, ` ${part[1]}`);
+  });
+  info.appendChild(credits);
+}
+
 export async function initMoviesPanel() {
   const listEl = document.getElementById('movieList');
   if (!listEl) return;
@@ -148,6 +211,15 @@ export async function initMoviesPanel() {
       if (!res.ok) throw new Error('Network response was not ok');
       let movies = await res.json();
       movies = movies.filter(m => !watched.has(String(m.id)));
+      const apiKey = resolveApiKey();
+      await Promise.all(
+        movies.map(async m => {
+          if (m && (!m.director || !m.actors)) {
+            const credits = await fetchCreditsForMovie(m.id, apiKey);
+            applyCredits(m, credits);
+          }
+        })
+      );
       if (!movies.length) {
         savedListEl.innerHTML = '<em>No saved movies.</em>';
         return;
@@ -169,14 +241,9 @@ export async function initMoviesPanel() {
         const titleEl = document.createElement('h3');
         titleEl.textContent = `${title} (${year})`;
         info.appendChild(titleEl);
+        appendCredits(info, m);
         const metaList = document.createElement('ul');
         metaList.className = 'movie-meta';
-        if (m.director) {
-          appendMeta(metaList, 'Director', m.director);
-        }
-        if (m.actors) {
-          appendMeta(metaList, 'Actors', m.actors);
-        }
         if (m.overview) {
           const mi = document.createElement('li');
           mi.textContent = `${m.overview}`;
@@ -194,12 +261,30 @@ export async function initMoviesPanel() {
     }
   };
 
-  const loadWatchedMovies = () => {
+  const loadWatchedMovies = async () => {
     if (!watchedListEl) return;
     const movies = getWatchedData();
     if (!movies.length) {
       watchedListEl.innerHTML = '<em>No watched movies.</em>';
       return;
+    }
+    const apiKey = resolveApiKey();
+    let hasUpdates = false;
+    await Promise.all(
+      movies.map(async m => {
+        if (m && (!m.director || !m.actors)) {
+          const credits = await fetchCreditsForMovie(m.id, apiKey);
+          const beforeDirector = m.director;
+          const beforeActors = m.actors;
+          applyCredits(m, credits);
+          if (m.director !== beforeDirector || m.actors !== beforeActors) {
+            hasUpdates = true;
+          }
+        }
+      })
+    );
+    if (hasUpdates) {
+      saveWatchedData(movies);
     }
     const ul = document.createElement('ul');
     movies.forEach(m => {
@@ -218,14 +303,9 @@ export async function initMoviesPanel() {
       const titleEl = document.createElement('h3');
       titleEl.textContent = `${title} (${year})`;
       info.appendChild(titleEl);
+      appendCredits(info, m);
       const metaList = document.createElement('ul');
       metaList.className = 'movie-meta';
-      if (m.director) {
-        appendMeta(metaList, 'Director', m.director);
-      }
-      if (m.actors) {
-        appendMeta(metaList, 'Actors', m.actors);
-      }
       if (m.overview) {
         const mi = document.createElement('li');
         mi.textContent = `${m.overview}`;
@@ -250,8 +330,11 @@ export async function initMoviesPanel() {
     savedApiKey ||
     '';
 
+  const resolveApiKey = () =>
+    (currentApiKey || apiKeyInput?.value.trim() || savedApiKey || '').trim();
+
   const loadMovies = async () => {
-    const apiKey = currentApiKey || apiKeyInput?.value.trim();
+    const apiKey = resolveApiKey();
     if (!apiKey) {
       listEl.textContent = 'TMDB API key not provided.';
       return;
@@ -313,20 +396,12 @@ export async function initMoviesPanel() {
       // Fetch cast and crew for each movie
       await Promise.all(
         movies.map(async m => {
-          try {
-            const creditUrl = `https://api.themoviedb.org/3/movie/${m.id}/credits?api_key=${apiKey}`;
-            const creditRes = await fetch(creditUrl);
-            if (creditRes.ok) {
-              const creditData = await creditRes.json();
-              m.actors = (creditData.cast || [])
-                .slice(0, 5)
-                .map(c => c.name)
-                .join(', ');
-              const director = (creditData.crew || []).find(c => c.job === 'Director');
-              if (director) m.director = director.name;
-            }
-          } catch (_) {
-            /* ignore credit fetch errors */
+          const credits = await fetchCreditsForMovie(m.id, apiKey);
+          if (credits.actors) {
+            m.actors = credits.actors;
+          }
+          if (credits.director) {
+            m.director = credits.director;
           }
         })
       );
@@ -376,6 +451,7 @@ export async function initMoviesPanel() {
         const titleEl = document.createElement('h3');
         titleEl.textContent = `${title} (${year})`;
         info.appendChild(titleEl);
+        appendCredits(info, m);
 
         const btnRow = document.createElement('div');
         btnRow.className = 'button-row';
@@ -423,13 +499,6 @@ export async function initMoviesPanel() {
 
         const metaList = document.createElement('ul');
         metaList.className = 'movie-meta';
-
-        if (m.director) {
-          appendMeta(metaList, 'Director', m.director);
-        }
-        if (m.actors) {
-          appendMeta(metaList, 'Actors', m.actors);
-        }
 
         Object.entries(m).forEach(([key, value]) => {
           if (value === null || value === undefined) return;

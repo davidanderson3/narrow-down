@@ -82,12 +82,11 @@ describe('initMoviesPanel', () => {
       1,
       'https://api.themoviedb.org/3/discover/movie?api_key=TEST_KEY&sort_by=release_date.desc&page=1'
     );
-    expect(fetch).toHaveBeenNthCalledWith(
-      6,
+    const fetchUrls = fetch.mock.calls.map(call => call[0]);
+    expect(fetchUrls).toContain(
       'https://api.themoviedb.org/3/movie/123/credits?api_key=TEST_KEY'
     );
-    expect(fetch).toHaveBeenNthCalledWith(
-      7,
+    expect(fetchUrls).toContain(
       'https://api.themoviedb.org/3/genre/movie/list?api_key=TEST_KEY'
     );
   });
@@ -213,12 +212,11 @@ describe('initMoviesPanel', () => {
       1,
       'https://api.themoviedb.org/3/discover/movie?api_key=INPUT_KEY&sort_by=release_date.desc&page=1'
     );
-    expect(fetch).toHaveBeenNthCalledWith(
-      6,
+    const fetchUrls = fetch.mock.calls.map(call => call[0]);
+    expect(fetchUrls).toContain(
       'https://api.themoviedb.org/3/movie/1/credits?api_key=INPUT_KEY'
     );
-    expect(fetch).toHaveBeenNthCalledWith(
-      7,
+    expect(fetchUrls).toContain(
       'https://api.themoviedb.org/3/genre/movie/list?api_key=INPUT_KEY'
     );
     expect(stored).toBe('INPUT_KEY');

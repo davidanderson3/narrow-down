@@ -2304,6 +2304,16 @@ h2 {
   font-size: 1.1rem;
 }
 
+.movie-credits {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.movie-credits strong {
+  font-weight: 600;
+}
+
 .movie-meta {
   list-style: none;
   padding: 0;
