@@ -14,9 +14,12 @@ describe('initRecipesPanel', () => {
     `);
     global.document = dom.window.document;
     global.window = dom.window;
+    const store = {};
     global.localStorage = {
-      getItem: () => '',
-      setItem: () => {}
+      getItem: key => (key in store ? store[key] : ''),
+      setItem: (key, val) => {
+        store[key] = val;
+      }
     };
   });
 
@@ -171,5 +174,67 @@ describe('initRecipesPanel', () => {
     await initRecipesPanel();
     const container = document.getElementById('recipesApiKeyContainer');
     expect(container.style.display).toBe('none');
+  });
+
+  it('prompts for API key when backend key is missing', async () => {
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: false,
+        status: 500,
+        json: () => Promise.resolve({ error: 'missing api key' })
+      })
+    );
+
+    await initRecipesPanel();
+    document.getElementById('recipesQuery').value = 'salad';
+    document.getElementById('recipesSearchBtn').click();
+    await new Promise(r => setTimeout(r, 0));
+
+    const container = document.getElementById('recipesApiKeyContainer');
+    expect(container.style.display).not.toBe('none');
+    const listEl = document.getElementById('recipesList');
+    expect(listEl.textContent).toBe('Add your API key to continue.');
+  });
+
+  it('falls back to API Ninjas when an API key is provided', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: () => Promise.resolve({ error: 'missing api key' })
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve([
+            {
+              title: 'Ninja Soup',
+              ingredients: 'chicken, water',
+              instructions: 'Boil.',
+              servings: 2
+            }
+          ])
+      });
+    global.fetch = fetchMock;
+
+    await initRecipesPanel();
+    document.getElementById('recipesQuery').value = 'soup';
+    document.getElementById('recipesSearchBtn').click();
+    await new Promise(r => setTimeout(r, 0));
+
+    const apiKeyInput = document.getElementById('recipesApiKey');
+    apiKeyInput.value = 'abc123';
+    document.getElementById('recipesSearchBtn').click();
+    await new Promise(r => setTimeout(r, 0));
+
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      'https://api.api-ninjas.com/v1/recipe?query=soup',
+      expect.objectContaining({
+        headers: expect.objectContaining({ 'X-Api-Key': 'abc123' })
+      })
+    );
+    const firstTitle = document.querySelector('#recipesList li strong');
+    expect(firstTitle.textContent).toBe('Ninja Soup');
   });
 });

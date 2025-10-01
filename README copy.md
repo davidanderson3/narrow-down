@@ -46,3 +46,5 @@ npm test
 ### Spoonacular proxy
 
 The backend exposes a `/api/spoonacular` route that forwards recipe searches to the Spoonacular API without revealing your key. Define a `SPOONACULAR_KEY` environment variable before running the server when deploying (e.g., on Render).
+
+If the proxy is missing a key, the Recipes tab now prompts for a personal API Ninjas key and calls their recipe endpoint directly as a fallback so you can keep searching without redeploying the backend.

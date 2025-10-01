@@ -8,12 +8,85 @@ export async function initRecipesPanel() {
   if (!listEl) return;
   const queryInput = document.getElementById('recipesQuery');
   const apiKeyContainer = document.getElementById('recipesApiKeyContainer');
+  const apiKeyInput = document.getElementById('recipesApiKey');
+  const apiKeyInstructions = document.getElementById('recipesApiKeyInstructions');
   const searchBtn = document.getElementById('recipesSearchBtn');
 
   const savedQuery = localStorage.getItem('recipesQuery') || '';
   if (queryInput) queryInput.value = savedQuery;
   // hide API key input when using proxy
   if (apiKeyContainer) apiKeyContainer.style.display = 'none';
+
+  const storedApiKey = localStorage.getItem('recipesApiKey') || '';
+  if (storedApiKey && apiKeyInput) {
+    apiKeyInput.value = storedApiKey;
+    if (apiKeyContainer) apiKeyContainer.style.display = '';
+  }
+
+  const showApiKeyPrompt = message => {
+    if (apiKeyContainer) apiKeyContainer.style.display = '';
+    if (apiKeyInstructions)
+      apiKeyInstructions.innerHTML =
+        message ||
+        'Enter your API key from <a href="https://api-ninjas.com/profile" target="_blank" rel="noopener noreferrer">API Ninjas</a> to search directly without the proxy.';
+    apiKeyInput?.focus();
+  };
+
+  const fetchFromSpoonacular = async query => {
+    const res = await fetch(
+      `${API_BASE_URL}/api/spoonacular?query=${encodeURIComponent(query)}`
+    );
+    if (!res.ok) {
+      let data = null;
+      try {
+        data = await res.json();
+      } catch (err) {
+        // ignore
+      }
+      if (data?.error === 'missing api key') {
+        const error = new Error('missing spoonacular api key');
+        error.code = 'MISSING_BACKEND_KEY';
+        throw error;
+      }
+      throw new Error(`HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    const recipes = Array.isArray(data?.results)
+      ? data.results.map(r => ({
+          title: r.title,
+          ingredients:
+            r.extendedIngredients?.map(i => i.original).join('|') || '',
+          servings: r.servings,
+          instructions:
+            r.analyzedInstructions?.[0]?.steps.map(s => s.step).join('. ') || '',
+          spoonacularScore: r.spoonacularScore,
+          aggregateLikes: r.aggregateLikes,
+          readyInMinutes: r.readyInMinutes
+        }))
+      : [];
+    return recipes;
+  };
+
+  const fetchFromApiNinjas = async (query, apiKey) => {
+    const res = await fetch(
+      `https://api.api-ninjas.com/v1/recipe?query=${encodeURIComponent(query)}`,
+      {
+        headers: {
+          'X-Api-Key': apiKey
+        }
+      }
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    return Array.isArray(data)
+      ? data.map(r => ({
+          title: r.title,
+          ingredients: r.ingredients,
+          servings: r.servings,
+          instructions: r.instructions
+        }))
+      : [];
+  };
 
   const loadRecipes = async () => {
     const query = queryInput?.value.trim();
@@ -24,22 +97,16 @@ export async function initRecipesPanel() {
     if (searchBtn) searchBtn.disabled = true;
     listEl.innerHTML = '<em>Loading...</em>';
     try {
-      const res = await fetch(
-        `${API_BASE_URL}/api/spoonacular?query=${encodeURIComponent(query)}`
-      );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      const recipes = Array.isArray(data?.results)
-        ? data.results.map(r => ({
-            title: r.title,
-            ingredients: r.extendedIngredients?.map(i => i.original).join('|') || '',
-            servings: r.servings,
-            instructions: r.analyzedInstructions?.[0]?.steps.map(s => s.step).join('. ') || '',
-            spoonacularScore: r.spoonacularScore,
-            aggregateLikes: r.aggregateLikes,
-            readyInMinutes: r.readyInMinutes
-          }))
-        : [];
+      const activeKey = apiKeyInput?.value.trim() || storedApiKey;
+      let recipes;
+      if (activeKey) {
+        recipes = await fetchFromApiNinjas(query, activeKey);
+        if (apiKeyInput) {
+          localStorage.setItem('recipesApiKey', activeKey);
+        }
+      } else {
+        recipes = await fetchFromSpoonacular(query);
+      }
       if (recipes.length === 0) {
         listEl.textContent = 'No recipes found.';
         return;
@@ -86,12 +153,21 @@ export async function initRecipesPanel() {
           ingHeader.textContent = 'Ingredients';
           li.appendChild(ingHeader);
           const ingList = document.createElement('ul');
-          const rawIngredients = r.ingredients.includes('|') ? r.ingredients.split('|') : r.ingredients.split(',');
-          rawIngredients.map(i => i.trim()).filter(Boolean).forEach(i => {
-            const ingItem = document.createElement('li');
-            ingItem.textContent = i;
-            ingList.appendChild(ingItem);
-          });
+          const rawIngredients = Array.isArray(r.ingredients)
+            ? r.ingredients
+            : typeof r.ingredients === 'string'
+              ? r.ingredients.includes('|')
+                ? r.ingredients.split('|')
+                : r.ingredients.split(',')
+              : [];
+          rawIngredients
+            .map(i => (typeof i === 'string' ? i.trim() : i))
+            .filter(Boolean)
+            .forEach(i => {
+              const ingItem = document.createElement('li');
+              ingItem.textContent = i;
+              ingList.appendChild(ingItem);
+            });
           li.appendChild(ingList);
         }
 
@@ -134,6 +210,11 @@ export async function initRecipesPanel() {
       listEl.appendChild(ul);
       localStorage.setItem('recipesQuery', query);
     } catch (err) {
+      if (err?.code === 'MISSING_BACKEND_KEY') {
+        showApiKeyPrompt('Enter your API Ninjas API key to search recipes.');
+        listEl.textContent = 'Add your API key to continue.';
+        return;
+      }
       console.error('Failed to load recipes', err);
       listEl.textContent = 'Failed to load recipes.';
     } finally {
