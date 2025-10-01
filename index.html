@@ -20,6 +20,7 @@
       <div class="tabs scroll-tabs" id="tabsContainer">
         <button class="tab-button active" data-target="moviesPanel">Movies</button>
         <button class="tab-button" data-target="showsPanel">Live Music</button>
+        <button class="tab-button" data-target="restaurantsPanel">Restaurants</button>
         <button class="tab-button" data-target="recipesPanel">Recipes</button>
       </div>
     </nav>
@@ -72,6 +73,24 @@
       </div>
     </div>
 
+    <div id="restaurantsPanel" class="main-layout" style="display:none;">
+      <div class="full-column">
+        <div class="panel-header">
+          <h2>Restaurants</h2>
+        </div>
+        <div id="restaurantsForm" style="margin-bottom:1rem;">
+          <input type="text" id="restaurantsLocationInput" placeholder="City, address, or ZIP" style="margin-right:.5rem;">
+          <button type="button" id="restaurantsSearchBtn" aria-label="Search location" style="margin-right:.5rem;">Search</button>
+          <button type="button" id="restaurantsUseGeolocation" aria-label="Use current location">Use my location</button>
+          <div id="restaurantsStatus" style="margin-top:0.5rem;font-size:0.9rem;"></div>
+        </div>
+        <div id="restaurantsList" class="decision-container"></div>
+        <div style="font-size:0.8rem;margin-top:0.5rem;">
+          Data from <a href="https://www.openstreetmap.org" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> via the <a href="https://overpass-api.de/" target="_blank" rel="noopener noreferrer">Overpass API</a> and <a href="https://nominatim.org/" target="_blank" rel="noopener noreferrer">Nominatim</a>.
+        </div>
+      </div>
+    </div>
+
     <div id="recipesPanel" class="main-layout" style="display:none;">
       <div class="full-column">
         <div class="panel-header">
@@ -98,6 +117,7 @@
   <script type="module" src="js/main.js"></script>
   <script type="module" src="js/movies.js"></script>
   <script type="module" src="js/shows.js"></script>
+  <script type="module" src="js/restaurants.js"></script>
   <script type="module" src="js/recipes.js"></script>
 </body>
 </html>

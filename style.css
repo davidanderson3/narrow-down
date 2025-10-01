@@ -2280,6 +2280,58 @@ h2 {
   margin: 2rem 0;
 }
 
+.restaurant-card {
+  border: 1px solid #d5d5d5;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.restaurant-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.restaurant-header strong {
+  font-size: 1.05rem;
+}
+
+.restaurant-distance {
+  font-size: 0.85rem;
+  color: #555;
+  white-space: nowrap;
+}
+
+.restaurant-address,
+.restaurant-cuisines,
+.restaurant-hours {
+  font-size: 0.9rem;
+}
+
+.restaurant-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.restaurant-links a {
+  color: #2a6f97;
+  text-decoration: none;
+}
+
+.restaurant-links a:hover,
+.restaurant-links a:focus {
+  text-decoration: underline;
+}
+
 .movie-card {
   display: flex;
   gap: 1rem;

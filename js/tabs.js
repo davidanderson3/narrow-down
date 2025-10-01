@@ -1,4 +1,4 @@
-const PANELS = ['moviesPanel', 'showsPanel', 'recipesPanel'];
+const PANELS = ['moviesPanel', 'showsPanel', 'restaurantsPanel', 'recipesPanel'];
 
 export function initTabs() {
   const buttons = Array.from(document.querySelectorAll('.tab-button'));
@@ -15,6 +15,8 @@ export function initTabs() {
         await window.initMoviesPanel?.();
       } else if (target === 'showsPanel') {
         await window.initShowsPanel?.();
+      } else if (target === 'restaurantsPanel') {
+        await window.initRestaurantsPanel?.();
       } else if (target === 'recipesPanel') {
         await window.initRecipesPanel?.();
       }
@@ -33,6 +35,8 @@ export function initTabs() {
       window.initMoviesPanel?.();
     } else if (target === 'showsPanel') {
       window.initShowsPanel?.();
+    } else if (target === 'restaurantsPanel') {
+      window.initRestaurantsPanel?.();
     } else if (target === 'recipesPanel') {
       window.initRecipesPanel?.();
     }
