@@ -797,6 +797,7 @@ async function renderConfigForm() {
   config.forEach(m => { if (!('direction' in m)) m.direction = 'higher'; applyUnitLabels(m); });
 
   const section = document.getElementById('metricsConfigSection');
+  if (!section) return;
   section.innerHTML = '<div id="configFormContainer" style="display:none;"></div>';
 }
 
