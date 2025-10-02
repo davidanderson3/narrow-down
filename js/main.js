@@ -17,13 +17,11 @@ let renderQueue = Promise.resolve();
 
 window.addEventListener('DOMContentLoaded', () => {
   if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
-    navigator.serviceWorker
-      .register('service-worker.js')
+    navigator.serviceWorker.getRegistrations?.()
+      .then(regs => Promise.all(regs.map(reg => reg.unregister().catch(() => {}))))
       .catch(err => {
-        console.warn('Service worker registration failed:', err);
+        console.warn('Service worker cleanup failed:', err);
       });
-  } else {
-    console.warn('Service workers are not supported; offline features will be limited.');
   }
     applySiteName();
     initDescriptions();

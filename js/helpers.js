@@ -46,6 +46,7 @@ function stripScheduleFields(list) {
 
 const SAMPLE_SIGNATURE = JSON.stringify(stripScheduleFields(SAMPLE_DECISIONS));
 const SAMPLE_LISTS_SIGNATURE = JSON.stringify(SAMPLE_LISTS);
+const DECISIONS_ENABLED = false;
 
 // IDs used in sample/demo data that should never be persisted
 const DEMO_IDS = new Set([
@@ -183,6 +184,14 @@ export function getSampleSessionId() {
 }
 
 export async function loadDecisions(forceRefresh = false) {
+  if (!DECISIONS_ENABLED) {
+    const cached = getDecisionsCache();
+    if (cached && !forceRefresh) return cached;
+    const empty = [];
+    setDecisionsCache(empty);
+    notifyDecisionsUpdated();
+    return empty;
+  }
   await awaitAuthUser();
   const currentUser = getCurrentUser();
 
@@ -245,8 +254,6 @@ export async function loadDecisions(forceRefresh = false) {
     } catch (err) {
       console.error('Failed to purge duplicates', err);
     }
-  } else {
-    console.log(`Loaded ${items.length} decisions from Firestore`);
   }
 
   if (isSampleDataset(items)) {
@@ -260,6 +267,7 @@ export async function loadDecisions(forceRefresh = false) {
 }
 
 export async function removeDuplicateDecisionsFromDb() {
+  if (!DECISIONS_ENABLED) return [];
   await awaitAuthUser();
   const currentUser = getCurrentUser();
   if (!currentUser) {
@@ -293,6 +301,7 @@ export async function removeDuplicateDecisionsFromDb() {
 }
 
 export async function saveDecisions(items, { skipNotify = false } = {}) {
+  if (!DECISIONS_ENABLED) return;
   if (!Array.isArray(items)) return;
   // Remove duplicate IDs before caching/saving
   items = dedupeDecisions(items);
@@ -681,6 +690,4 @@ export function pickDateRange(start = '', end = '') {
     startInput.showPicker?.();
   });
 }
-
-
 

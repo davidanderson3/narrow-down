@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
@@ -155,21 +156,58 @@ app.get('/api/spotify-client-id', (req, res) => {
 
 app.get('/api/restaurants', async (req, res) => {
   const { city, cuisine = '' } = req.query || {};
-  const apiKey = req.get('x-api-key') || req.query.apiKey;
-  if (!apiKey) {
-    return res.status(400).json({ error: 'missing api key' });
+  const yelpKey = req.get('x-api-key') || req.query.apiKey || process.env.YELP_API_KEY;
+  if (!yelpKey) {
+    return res.status(500).json({ error: 'missing yelp api key' });
   }
   if (!city) {
     return res.status(400).json({ error: 'missing city' });
   }
-  const params = new URLSearchParams({ city: String(city), limit: '20' });
-  if (cuisine) params.set('cuisine', String(cuisine));
+
+  const params = new URLSearchParams({
+    location: String(city),
+    categories: 'restaurants',
+    limit: '20'
+  });
+  if (cuisine) {
+    params.set('term', String(cuisine));
+  }
+
+  const url = `https://api.yelp.com/v3/businesses/search?${params.toString()}`;
+
   try {
-    const apiRes = await fetch(`https://api.api-ninjas.com/v1/restaurant?${params.toString()}`, {
-      headers: { 'X-Api-Key': apiKey }
+    const apiRes = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${yelpKey}`
+      }
     });
-    const body = await apiRes.text();
-    res.status(apiRes.status).type(apiRes.headers.get('content-type') || 'application/json').send(body);
+
+    const data = await apiRes.json();
+
+    if (!apiRes.ok) {
+      const message = data?.error?.description || data?.error?.code || 'failed';
+      return res.status(apiRes.status).json({ error: message });
+    }
+
+    const results = Array.isArray(data?.businesses) ? data.businesses : [];
+    const simplified = results.map(biz => ({
+      id: biz.id,
+      name: biz.name,
+      address: Array.isArray(biz.location?.display_address)
+        ? biz.location.display_address.join(', ')
+        : biz.location?.address1 || '',
+      city: biz.location?.city || '',
+      state: biz.location?.state || '',
+      zip: biz.location?.zip_code || '',
+      phone: biz.display_phone || biz.phone || '',
+      rating: biz.rating ?? null,
+      reviewCount: biz.review_count ?? null,
+      price: biz.price || '',
+      categories: Array.isArray(biz.categories) ? biz.categories.map(c => c.title).filter(Boolean) : [],
+      url: biz.url || ''
+    }));
+
+    res.json(simplified);
   } catch (err) {
     console.error('Restaurant proxy failed', err);
     res.status(500).json({ error: 'failed' });

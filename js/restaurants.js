@@ -7,9 +7,12 @@ const STORAGE_KEY = 'restaurantsApiKey';
 let initialized = false;
 
 function persistApiKey(key) {
-  if (!key) return;
   try {
-    localStorage.setItem(STORAGE_KEY, key);
+    if (key) {
+      localStorage.setItem(STORAGE_KEY, key);
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+    }
   } catch (_) {
     /* ignore */
   }
@@ -64,9 +67,12 @@ function renderResults(container, items) {
       meta.appendChild(m);
     }
 
-    if (rest.cuisine) {
+    const categoryText = Array.isArray(rest.categories) && rest.categories.length
+      ? rest.categories.join(', ')
+      : rest.cuisine;
+    if (categoryText) {
       const m = document.createElement('li');
-      m.textContent = `Cuisine: ${rest.cuisine}`;
+      m.textContent = `Cuisine: ${categoryText}`;
       meta.appendChild(m);
     }
 
@@ -76,16 +82,24 @@ function renderResults(container, items) {
       meta.appendChild(m);
     }
 
-    if (rest.rating) {
+    if (rest.price) {
       const m = document.createElement('li');
-      m.textContent = `Rating: ${rest.rating}`;
+      m.textContent = `Price: ${rest.price}`;
       meta.appendChild(m);
     }
 
-    if (rest.website) {
+    if (rest.rating) {
+      const m = document.createElement('li');
+      const reviews = rest.reviewCount ? ` (${rest.reviewCount} reviews)` : '';
+      m.textContent = `Rating: ${rest.rating}${reviews}`;
+      meta.appendChild(m);
+    }
+
+    if (rest.url || rest.website) {
       const m = document.createElement('li');
       const link = document.createElement('a');
-      link.href = rest.website.startsWith('http') ? rest.website : `https://${rest.website}`;
+      const href = rest.url || rest.website;
+      link.href = href.startsWith('http') ? href : `https://${href}`;
       link.target = '_blank';
       link.rel = 'noopener noreferrer';
       link.textContent = 'Website';
@@ -101,20 +115,18 @@ function renderResults(container, items) {
   container.appendChild(ul);
 }
 
-async function fetchRestaurants({ apiKey, city, cuisine }) {
+async function fetchRestaurants({ city, cuisine, apiKey }) {
   const params = new URLSearchParams();
   params.set('city', city);
   if (cuisine) params.set('cuisine', cuisine);
-  params.set('limit', '20');
 
   const base = API_BASE_URL ? API_BASE_URL.replace(/\/$/, '') : '';
-  const res = await fetch(`${base}/api/restaurants?${params.toString()}`, {
-    headers: {
-      'X-Api-Key': apiKey
-    }
-  });
+  const headers = apiKey ? { 'X-Api-Key': apiKey } : undefined;
+  const res = await fetch(`${base}/api/restaurants?${params.toString()}`, { headers });
   if (!res.ok) {
-    throw new Error(`Request failed: ${res.status}`);
+    const errBody = await res.json().catch(() => ({}));
+    const message = errBody?.error || `Request failed: ${res.status}`;
+    throw new Error(message);
   }
   const data = await res.json();
   return Array.isArray(data) ? data : [];
@@ -135,36 +147,35 @@ export async function initRestaurantsPanel() {
   const storedKey = getStoredKey();
   if (apiKeyInput && storedKey) {
     apiKeyInput.value = storedKey;
-    const container = document.getElementById('restaurantsApiKeyContainer');
-    if (container) container.style.display = 'none';
   }
 
   async function handleSearch() {
     if (!cityInput) return;
     const city = cityInput.value.trim();
     const cuisine = cuisineInput?.value.trim() || '';
-    const apiKey = apiKeyInput?.value.trim() || storedKey;
+    const enteredKey = apiKeyInput?.value.trim() || '';
 
-    if (!apiKey) {
-      renderMessage(resultsContainer, 'Enter your API Ninjas key.');
-      apiKeyInput?.focus();
-      return;
+    if (enteredKey) {
+      persistApiKey(enteredKey);
+    } else {
+      persistApiKey('');
     }
+
+    const apiKey = enteredKey;
     if (!city) {
       renderMessage(resultsContainer, 'Enter a city to search.');
       cityInput.focus();
       return;
     }
 
-    persistApiKey(apiKey);
     renderLoading(resultsContainer);
 
     try {
-      const data = await fetchRestaurants({ apiKey, city, cuisine });
+      const data = await fetchRestaurants({ city, cuisine, apiKey });
       renderResults(resultsContainer, data);
     } catch (err) {
       console.error('Restaurant search failed', err);
-      renderMessage(resultsContainer, 'Failed to load restaurants. Check your API key and try again.');
+      renderMessage(resultsContainer, err?.message || 'Failed to load restaurants.');
     }
   }
 

@@ -488,4 +488,3 @@ export async function renderChildren(goal, all, container) {
         });
     }
 }
-
