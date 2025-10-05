@@ -46,3 +46,9 @@ npm test
 ### Spoonacular proxy
 
 The backend exposes a `/api/spoonacular` route that forwards recipe searches to the Spoonacular API without revealing your key. Define a `SPOONACULAR_KEY` environment variable before running the server when deploying (e.g., on Render).
+
+### Firebase configuration
+
+When the frontend loads it requests `js/firebase-config.js`. The file is ignored by Git so you can safely store your Firebase credentials there.
+If it has not been created yet the browser will log a `Missing Firebase configuration` error. To fix it, copy `js/firebase-config.example.js` to `js/firebase-config.js` and fill in the values from your Firebase project.
+

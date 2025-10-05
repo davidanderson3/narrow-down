@@ -25,6 +25,23 @@ const HAS_TICKETMASTER_KEY = Boolean(TICKETMASTER_CONSUMER_KEY);
 // Enable CORS for all routes so the frontend can reach the API
 app.use(cors());
 
+// Provide a helpful response when the Firebase config file has not been created yet.
+const firebaseConfigPath = path.resolve(__dirname, '../js/firebase-config.js');
+app.get('/js/firebase-config.js', (req, res, next) => {
+  if (fs.existsSync(firebaseConfigPath)) {
+    return res.sendFile(firebaseConfigPath);
+  }
+
+  res
+    .status(404)
+    .type('application/javascript')
+    .send([
+      "console.error('Dashboard: js/firebase-config.js was requested but does not exist.');",
+      "console.error('Copy js/firebase-config.example.js to js/firebase-config.js and fill in your Firebase credentials.');",
+      "throw new Error('Missing Firebase configuration. See console for setup instructions.');"
+    ].join('\n'));
+});
+
 const CONTACT_EMAIL = Buffer.from('ZHZkbmRyc25AZ21haWwuY29t', 'base64').toString('utf8');
 const mailer = (() => {
   if (!nodemailer || !process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) return null;
