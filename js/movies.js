@@ -306,17 +306,38 @@ function applyCreditsToMovie(movie, credits) {
 
 async function fetchCreditsForMovie(movieId, { usingProxy, apiKey }) {
   if (!movieId) return null;
-  try {
-    if (usingProxy) {
-      return await callTmdbProxy('credits', { movieId: movieId });
-    }
 
+  const fetchDirect = async () => {
     if (!apiKey) return null;
     const url = new URL(`https://api.themoviedb.org/3/movie/${movieId}/credits`);
     url.searchParams.set('api_key', apiKey);
     const res = await fetch(url.toString());
     if (!res.ok) return null;
     return await res.json();
+  };
+
+  try {
+    if (usingProxy) {
+      try {
+        return await callTmdbProxy('credits', { movieId: movieId });
+      } catch (err) {
+        const shouldFallback =
+          err &&
+          typeof err === 'object' &&
+          Number.isInteger(err.status) &&
+          err.status === 400;
+
+        if (shouldFallback) {
+          disableTmdbProxy();
+          const directCredits = await fetchDirect();
+          if (directCredits) return directCredits;
+        }
+
+        throw err;
+      }
+    }
+
+    return await fetchDirect();
   } catch (err) {
     console.error('Failed to fetch credits for movie', movieId, err);
     return null;
