@@ -130,6 +130,40 @@ describe('initRestaurantsPanel', () => {
     expect(results.textContent).toContain('failed');
   });
 
+  it('falls back to demo restaurants when fetching fails', async () => {
+    const dom = setupDom();
+    global.window = dom.window;
+    global.document = dom.window.document;
+
+    const geoMock = {
+      getCurrentPosition: vi.fn(success => {
+        success({ coords: { latitude: 30.2672, longitude: -97.7431 } });
+      })
+    };
+    Object.defineProperty(window.navigator, 'geolocation', {
+      configurable: true,
+      value: geoMock
+    });
+    global.navigator = window.navigator;
+
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ address: { city: 'Austin' } })
+      })
+      .mockRejectedValueOnce(new Error('Network down'));
+
+    await initRestaurantsPanel();
+
+    const notice = document.querySelector('.restaurants-demo-notice');
+    expect(notice.textContent).toContain('Network down');
+    const names = Array.from(
+      document.querySelectorAll('#restaurantsResults h3')
+    ).map(el => el.textContent);
+    expect(names).toContain('Greenbelt Garden Table');
+  });
+
   it('filters out distant restaurants when coordinates are provided', async () => {
     const dom = setupDom();
     global.window = dom.window;

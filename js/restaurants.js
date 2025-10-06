@@ -9,6 +9,57 @@ let mapMarkersLayer = null;
 
 const MAX_DISTANCE_METERS = 160934; // ~100 miles
 
+const SAMPLE_RESTAURANTS = [
+  {
+    name: 'Greenbelt Garden Table',
+    rating: 4.7,
+    reviewCount: 286,
+    distance: 1200,
+    price: '$$',
+    phone: '(512) 555-0123',
+    website: 'https://example.com/greenbelt',
+    address: '215 Barton Springs Rd',
+    city: 'Austin',
+    state: 'TX',
+    zip: '78704',
+    latitude: 30.2642,
+    longitude: -97.7462,
+    categories: ['Farm-to-table', 'Brunch']
+  },
+  {
+    name: 'Moonlight Noodle Bar',
+    rating: 4.6,
+    reviewCount: 198,
+    distance: 2400,
+    price: '$$',
+    phone: '(512) 555-0456',
+    website: 'https://example.com/moonlight-noodle',
+    address: '1105 East 6th St',
+    city: 'Austin',
+    state: 'TX',
+    zip: '78702',
+    latitude: 30.2658,
+    longitude: -97.7281,
+    categories: ['Asian Fusion', 'Late Night']
+  },
+  {
+    name: 'Zilker Street Coffee & Bakes',
+    rating: 4.8,
+    reviewCount: 154,
+    distance: 900,
+    price: '$',
+    phone: '(512) 555-0998',
+    website: 'https://example.com/zilker-coffee',
+    address: '1500 South Lamar Blvd',
+    city: 'Austin',
+    state: 'TX',
+    zip: '78704',
+    latitude: 30.2556,
+    longitude: -97.7635,
+    categories: ['Coffee', 'Bakery']
+  }
+];
+
 function parseCoordinate(value) {
   if (typeof value === 'number') {
     return Number.isFinite(value) ? value : NaN;
@@ -330,13 +381,28 @@ function filterByDistance(items, maxDistance) {
   return nearby.length ? nearby : items;
 }
 
-function renderResults(container, items) {
+function renderResults(container, items, options = {}) {
   if (!items.length) {
     renderMessage(container, 'No restaurants found.');
     return;
   }
 
+  const { notice = '', noticeHtml = '', noticeClass = 'restaurants-demo-notice' } = options;
+
   ensureMap();
+
+  const fragment = document.createDocumentFragment();
+
+  if (notice || noticeHtml) {
+    const noticeEl = document.createElement('div');
+    noticeEl.className = noticeClass;
+    if (noticeHtml) {
+      noticeEl.innerHTML = noticeHtml;
+    } else {
+      noticeEl.textContent = notice;
+    }
+    fragment.appendChild(noticeEl);
+  }
 
   const grid = document.createElement('div');
   grid.className = 'restaurants-grid';
@@ -392,8 +458,10 @@ function renderResults(container, items) {
     grid.appendChild(card);
   });
 
+  fragment.appendChild(grid);
+
   container.innerHTML = '';
-  container.appendChild(grid);
+  container.appendChild(fragment);
 
   updateMap(items);
 }
@@ -496,7 +564,13 @@ async function loadNearbyRestaurants(container) {
     renderResults(container, sorted);
   } catch (err) {
     console.error('Restaurant search failed', err);
-    renderMessage(container, err?.message || 'Failed to load restaurants.');
+    const fallback = sortByRating(SAMPLE_RESTAURANTS);
+    renderResults(container, fallback, {
+      noticeHtml: `
+        <p><strong>Showing demo restaurants.</strong> We couldn't reach the live restaurant service (${err?.message || 'unknown error'}).</p>
+        <p>Start the local proxy with a Yelp API key (set <code>YELP_API_KEY</code> or send an <code>x-api-key</code> header) to restore live results.</p>
+      `
+    });
   }
 }
 

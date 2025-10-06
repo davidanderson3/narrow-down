@@ -186,4 +186,21 @@ describe('initRecipesPanel', () => {
     const container = document.getElementById('recipesApiKeyContainer');
     expect(container.style.display).toBe('none');
   });
+
+  it('shows demo recipes when the fetch fails', async () => {
+    global.fetch = vi.fn(() => Promise.reject(new Error('Network down')));
+
+    await initRecipesPanel();
+    document.getElementById('recipesQuery').value = 'pasta';
+    document.getElementById('recipesSearchBtn').click();
+    await new Promise(r => setTimeout(r, 0));
+
+    const notice = document.querySelector('.recipes-demo-notice');
+    expect(notice.textContent).toContain('Network down');
+
+    const titles = Array.from(
+      document.querySelectorAll('#recipesList .recipe-card__title')
+    ).map(el => el.textContent);
+    expect(titles).toContain('Herbed Roast Chicken');
+  });
 });

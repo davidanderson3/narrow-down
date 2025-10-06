@@ -2768,6 +2768,25 @@ h2 {
   font-size: 0.95rem;
 }
 
+.restaurants-demo-notice {
+  background: #eef6fb;
+  border: 1px solid rgba(23, 85, 118, 0.18);
+  color: #1a516b;
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.restaurants-demo-notice p {
+  margin: 0 0 0.5rem;
+}
+
+.restaurants-demo-notice p:last-child {
+  margin-bottom: 0;
+}
+
 .restaurants-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -3112,6 +3131,37 @@ h2 {
 
 .recipe-card__source a:hover {
   text-decoration: underline;
+}
+
+.recipes-demo-notice {
+  background: #fff7eb;
+  border: 1px solid rgba(168, 110, 8, 0.2);
+  color: #6f4704;
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  line-height: 1.6;
+}
+
+.recipes-demo-notice p {
+  margin: 0 0 0.65rem;
+}
+
+.recipes-demo-notice p:last-child {
+  margin-bottom: 0;
+}
+
+.recipes-demo-notice ol {
+  margin: 0.35rem 0 0 1.25rem;
+  padding: 0;
+}
+
+.recipes-demo-notice li {
+  margin-bottom: 0.35rem;
+}
+
+.recipes-demo-notice li:last-child {
+  margin-bottom: 0;
 }
 
 @media (max-width: 600px) {
