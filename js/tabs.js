@@ -105,6 +105,7 @@ export async function initTabs(user, db) {
       }
       else if (target === 'facebookEventsPanel' && typeof window.initFacebookEventsPanel === 'function') {
         await window.initFacebookEventsPanel();
+      }
       else if (target === 'comedyPanel') {
         await window.initComedyPanel();
       }
@@ -150,6 +151,7 @@ export async function initTabs(user, db) {
     }
     else if (initial === 'facebookEventsPanel' && typeof window.initFacebookEventsPanel === 'function') {
       window.initFacebookEventsPanel();
+    }
     else if (initial === 'comedyPanel') {
       window.initComedyPanel();
     }
