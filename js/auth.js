@@ -12,13 +12,24 @@ import { clearDecisionsCache, clearGoalOrderCache } from './cache.js';
 export let currentUser = null;
 
 const firebaseConfig = (() => {
-  const globalConfig = typeof globalThis !== 'undefined' ? globalThis.__FIREBASE_CONFIG__ : undefined;
-  if (globalConfig && typeof globalConfig === 'object') {
-    return globalConfig;
+  const globalObj = typeof globalThis !== 'undefined' ? globalThis : undefined;
+  const directConfig = globalObj && typeof globalObj.__FIREBASE_CONFIG__ === 'object'
+    ? globalObj.__FIREBASE_CONFIG__
+    : null;
+  if (directConfig) {
+    return directConfig;
   }
 
-  if (typeof document !== 'undefined') {
-    const meta = document.querySelector('meta[name="firebase-config"]');
+  const windowConfig = globalObj?.window && typeof globalObj.window.__FIREBASE_CONFIG__ === 'object'
+    ? globalObj.window.__FIREBASE_CONFIG__
+    : null;
+  if (windowConfig) {
+    return windowConfig;
+  }
+
+  if (typeof document !== 'undefined' || globalObj?.document) {
+    const doc = typeof document !== 'undefined' ? document : globalObj.document;
+    const meta = doc?.querySelector('meta[name="firebase-config"]');
     if (meta?.content) {
       try {
         return JSON.parse(meta.content);
