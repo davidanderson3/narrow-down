@@ -742,8 +742,9 @@ export async function initShowsPanel() {
   const statusEl = document.getElementById('spotifyStatus');
   const apiKeyInput = document.getElementById('ticketmasterApiKey');
   const tabsContainer = document.getElementById('showsTabs');
+  const tokenInput = document.getElementById('spotifyToken');
 
-  spotifyTokenInputRef = tokenInput;
+  spotifyTokenInputRef = tokenInput || null;
 
   if (tabsContainer) {
     const tabButtons = Array.from(tabsContainer.querySelectorAll('.shows-tab'));

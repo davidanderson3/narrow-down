@@ -11,6 +11,36 @@ import { clearDecisionsCache, clearGoalOrderCache } from './cache.js';
 
 export let currentUser = null;
 
+const firebaseConfig = (() => {
+  const globalObj = typeof globalThis !== 'undefined' ? globalThis : undefined;
+  const directConfig = globalObj && typeof globalObj.__FIREBASE_CONFIG__ === 'object'
+    ? globalObj.__FIREBASE_CONFIG__
+    : null;
+  if (directConfig) {
+    return directConfig;
+  }
+
+  const windowConfig = globalObj?.window && typeof globalObj.window.__FIREBASE_CONFIG__ === 'object'
+    ? globalObj.window.__FIREBASE_CONFIG__
+    : null;
+  if (windowConfig) {
+    return windowConfig;
+  }
+
+  if (typeof document !== 'undefined' || globalObj?.document) {
+    const doc = typeof document !== 'undefined' ? document : globalObj.document;
+    const meta = doc?.querySelector('meta[name="firebase-config"]');
+    if (meta?.content) {
+      try {
+        return JSON.parse(meta.content);
+      } catch (err) {
+        console.error('Failed to parse firebase-config meta tag:', err);
+      }
+    }
+  }
+
+  throw new Error('Firebase configuration was not provided. Ensure js/firebase-config.js defines window.__FIREBASE_CONFIG__.');
+})();
 const firebaseConfig = {
   apiKey: "AIzaSyBbet_bmwm8h8G5CqvmzrdAnc3AO-0IKa8",
   authDomain: "decision-maker-4e1d3.firebaseapp.com",

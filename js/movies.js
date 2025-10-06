@@ -613,8 +613,12 @@ function refreshUI() {
 function selectPriorityCandidates(movies) {
   if (!Array.isArray(movies) || !movies.length) return [];
 
+  const primary = movies.filter(movie => meetsQualityThreshold(movie));
+  if (primary.length) {
+    return primary;
+  }
+
   const thresholds = [
-    { minAverage: MIN_VOTE_AVERAGE, minVotes: MIN_VOTE_COUNT },
     {
       minAverage: Math.max(6.5, MIN_VOTE_AVERAGE - 0.5),
       minVotes: Math.max(25, Math.floor(MIN_VOTE_COUNT / 2))
@@ -622,18 +626,15 @@ function selectPriorityCandidates(movies) {
     { minAverage: 6, minVotes: 10 }
   ];
 
-  let bestFallback = [];
   for (const { minAverage, minVotes } of thresholds) {
     const filtered = movies.filter(movie => meetsQualityThreshold(movie, minAverage, minVotes));
-    if (filtered.length >= MIN_PRIORITY_RESULTS) {
+    if (filtered.length) {
       return filtered;
     }
     if (!bestFallback.length && filtered.length) {
       bestFallback = filtered;
     }
   }
-
-  if (bestFallback.length) return bestFallback;
 
   return movies.filter(movie => {
     const average = Number(movie?.vote_average ?? NaN);

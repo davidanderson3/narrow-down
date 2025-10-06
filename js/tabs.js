@@ -94,25 +94,24 @@ export async function initTabs(user, db) {
       history.pushState(null, '', `#${target}`);
 
       // 4) init dynamic content
-      if (target === 'moviesPanel') {
+      if (target === 'moviesPanel' && typeof window.initMoviesPanel === 'function') {
         await window.initMoviesPanel();
-      }
-      else if (target === 'showsPanel') {
+      } else if (target === 'showsPanel' && typeof window.initShowsPanel === 'function') {
         await window.initShowsPanel();
-      }
-      else if (target === 'eventbritePanel' && typeof window.initEventbritePanel === 'function') {
+      } else if (target === 'eventbritePanel' && typeof window.initEventbritePanel === 'function') {
         await window.initEventbritePanel();
-      }
-      else if (target === 'facebookEventsPanel' && typeof window.initFacebookEventsPanel === 'function') {
+      } else if (
+        target === 'facebookEventsPanel' &&
+        typeof window.initFacebookEventsPanel === 'function'
+      ) {
         await window.initFacebookEventsPanel();
+      } else if (target === 'comedyPanel' && typeof window.initComedyPanel === 'function') {
       }
       else if (target === 'comedyPanel') {
         await window.initComedyPanel();
-      }
-      else if (target === 'recipesPanel') {
+      } else if (target === 'recipesPanel' && typeof window.initRecipesPanel === 'function') {
         await window.initRecipesPanel();
-      }
-      else if (target === 'restaurantsPanel') {
+      } else if (target === 'restaurantsPanel') {
         await ensureRestaurantsPanelInitialized();
       }
     });
@@ -140,25 +139,27 @@ export async function initTabs(user, db) {
   // on load, fire any needed init. If DOMContentLoaded already fired,
   // run immediately instead of waiting for the event.
   const runInitial = () => {
-    if (initial === 'moviesPanel') {
+    if (initial === 'moviesPanel' && typeof window.initMoviesPanel === 'function') {
       window.initMoviesPanel();
-    }
-    else if (initial === 'showsPanel') {
+    } else if (initial === 'showsPanel' && typeof window.initShowsPanel === 'function') {
       window.initShowsPanel();
-    }
-    else if (initial === 'eventbritePanel' && typeof window.initEventbritePanel === 'function') {
+    } else if (
+      initial === 'eventbritePanel' &&
+      typeof window.initEventbritePanel === 'function'
+    ) {
       window.initEventbritePanel();
-    }
-    else if (initial === 'facebookEventsPanel' && typeof window.initFacebookEventsPanel === 'function') {
+    } else if (
+      initial === 'facebookEventsPanel' &&
+      typeof window.initFacebookEventsPanel === 'function'
+    ) {
       window.initFacebookEventsPanel();
+    } else if (initial === 'comedyPanel' && typeof window.initComedyPanel === 'function') {
     }
     else if (initial === 'comedyPanel') {
       window.initComedyPanel();
-    }
-    else if (initial === 'recipesPanel') {
+    } else if (initial === 'recipesPanel' && typeof window.initRecipesPanel === 'function') {
       window.initRecipesPanel();
-    }
-    else if (initial === 'restaurantsPanel') {
+    } else if (initial === 'restaurantsPanel') {
       ensureRestaurantsPanelInitialized();
     }
   };
