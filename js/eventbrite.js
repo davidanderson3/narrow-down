@@ -1,4 +1,4 @@
-const DEFAULT_API_TOKEN = '2YR3RA4K6VCZVEUZMBG4';
+const DEFAULT_API_TOKEN = '';
 
 const STORAGE_KEYS = {
   token: 'eventbriteApiToken',
@@ -154,13 +154,24 @@ function renderEvents(listEl, events) {
   listEl.appendChild(fragment);
 }
 
-function showMessage(listEl, message) {
-  listEl.innerHTML = `<p><em>${message}</em></p>`;
+function showMessage(listEl, message, { allowHTML = false } = {}) {
+  listEl.innerHTML = '';
+  const wrapper = document.createElement('p');
+  const emphasis = document.createElement('em');
+  if (allowHTML) {
+    emphasis.innerHTML = message;
+  } else {
+    emphasis.textContent = message;
+  }
+  wrapper.appendChild(emphasis);
+  listEl.appendChild(wrapper);
 }
 
 async function fetchEvents({ token, query, location, radius }) {
   if (!token) {
-    throw new Error('Please provide an Eventbrite API token.');
+    throw new Error(
+      'Enter an Eventbrite API token from the Eventbrite developer dashboard.'
+    );
   }
 
   if (!query && !location) {
@@ -195,19 +206,46 @@ async function fetchEvents({ token, query, location, radius }) {
     );
 
     if (!response.ok) {
+      const contentType = response.headers?.get('content-type') || '';
       let message = `Eventbrite request failed with status ${response.status}`;
-      try {
-        const errorBody = await response.json();
-        if (errorBody?.error_description) {
-          message = errorBody.error_description;
-        } else if (Array.isArray(errorBody?.error?.error_detail)) {
-          message = errorBody.error.error_detail.join(', ');
-        } else if (typeof errorBody?.error === 'string') {
-          message = errorBody.error;
+      let extraDetail = '';
+
+      if (contentType.includes('application/json')) {
+        try {
+          const errorBody = await response.json();
+          if (errorBody?.error_description) {
+            extraDetail = errorBody.error_description;
+          } else if (Array.isArray(errorBody?.error?.error_detail)) {
+            extraDetail = errorBody.error.error_detail.join(', ');
+          } else if (typeof errorBody?.error === 'string') {
+            extraDetail = errorBody.error;
+          }
+        } catch (err) {
+          // ignore parsing errors
         }
-      } catch (err) {
-        // ignore parsing errors
+      } else {
+        try {
+          const text = (await response.text()).trim();
+          if (text) {
+            extraDetail = text;
+          }
+        } catch (err) {
+          // ignore text parsing errors
+        }
       }
+
+      if ([401, 403].includes(response.status)) {
+        message =
+          'Eventbrite rejected the request. Confirm that your API token is valid and has access to the Event Search endpoint.';
+      } else if (response.status === 404) {
+        message =
+          'Eventbrite could not find the requested resource. This often happens when the API token does not have Event Search permissions.';
+      }
+
+      if (extraDetail && !message.includes(extraDetail)) {
+        message = `${message} (${extraDetail})`;
+      }
+
       throw new Error(message);
     }
 
@@ -298,7 +336,8 @@ export async function initEventbritePanel() {
     } else if (!listEl.innerHTML.trim()) {
       showMessage(
         listEl,
-        'Enter an API token plus keywords or a location to discover Eventbrite events.'
+        'Enter an Eventbrite API token from the <a href="https://www.eventbrite.com/platform/api-keys/" target="_blank" rel="noopener noreferrer">Eventbrite developer dashboard</a> plus keywords or a location to discover events.',
+        { allowHTML: true }
       );
     }
   }
