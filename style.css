@@ -802,6 +802,7 @@ button:hover {
   font-weight: 600;
 }
 
+
 .shows-empty-state {
   display: flex;
   flex-direction: column;
@@ -930,6 +931,10 @@ button:hover {
   color: #1f4a40;
   font-weight: 500;
   text-align: center;
+
+#spotifyStatus {
+  margin-left: auto;
+
 }
 
 #spotifyStatus,
@@ -2727,6 +2732,7 @@ h2 {
 
 .restaurants-map {
   min-height: 260px;
+  aspect-ratio: 1 / 1;
   border-radius: 18px;
   overflow: hidden;
   box-shadow: 0 12px 28px rgba(25, 55, 45, 0.12);
