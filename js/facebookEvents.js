@@ -262,6 +262,16 @@ export async function initFacebookEventsPanel() {
       const pageId = pageIdInput?.value.trim();
       const limit = limitSelect?.value || '10';
 
+      if (!token) {
+        showMessage(listEl, 'Enter a Facebook access token to load events.');
+        return;
+      }
+
+      if (!pageId) {
+        showMessage(listEl, 'Enter a Page or organizer ID to load events.');
+        return;
+      }
+
       writeStorage(STORAGE_KEYS.token, token);
       writeStorage(STORAGE_KEYS.pageId, pageId);
       writeStorage(STORAGE_KEYS.limit, limit);
