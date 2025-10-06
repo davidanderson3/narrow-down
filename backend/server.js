@@ -255,9 +255,17 @@ app.get('/api/restaurants', async (req, res) => {
 
 // --- Ticketmaster proxy ---
 app.get('/api/ticketmaster', async (req, res) => {
-  const { apiKey: queryKey, keyword } = req.query || {};
-  if (!keyword) {
-    return res.status(400).json({ error: 'missing keyword' });
+  const {
+    apiKey: queryKey,
+    keyword,
+    classificationName,
+    latlong,
+    radius,
+    size
+  } = req.query || {};
+
+  if (!keyword && !latlong) {
+    return res.status(400).json({ error: 'missing keyword or location' });
   }
 
   const effectiveKey = queryKey || TICKETMASTER_CONSUMER_KEY;
@@ -265,12 +273,33 @@ app.get('/api/ticketmaster', async (req, res) => {
     return res.status(500).json({ error: 'missing ticketmaster api key' });
   }
 
-  const url =
-    `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${encodeURIComponent(
-      effectiveKey
-    )}&classificationName=music&keyword=${encodeURIComponent(keyword)}`;
+  const allowedClassifications = {
+    music: 'Music',
+    comedy: 'Comedy'
+  };
+  const normalizedClassification =
+    typeof classificationName === 'string' ? classificationName.trim().toLowerCase() : '';
+  const effectiveClassification =
+    allowedClassifications[normalizedClassification] || allowedClassifications.music;
+
+  const url = new URL('https://app.ticketmaster.com/discovery/v2/events.json');
+  url.searchParams.set('apikey', effectiveKey);
+  url.searchParams.set('classificationName', effectiveClassification);
+  if (keyword) {
+    url.searchParams.set('keyword', keyword);
+  }
+  if (latlong) {
+    url.searchParams.set('latlong', latlong);
+  }
+  if (radius) {
+    url.searchParams.set('radius', radius);
+  }
+  if (size) {
+    url.searchParams.set('size', size);
+  }
+
   try {
-    const response = await fetch(url);
+    const response = await fetch(url.toString());
     const text = await response.text();
     res
       .status(response.status)
