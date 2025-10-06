@@ -1,3 +1,5 @@
+const DEFAULT_API_TOKEN = '2YR3RA4K6VCZVEUZMBG4';
+
 const STORAGE_KEYS = {
   token: 'eventbriteApiToken',
   query: 'eventbriteQuery',
@@ -229,7 +231,10 @@ export async function initEventbritePanel() {
   const searchBtn = document.getElementById('eventbriteSearchBtn');
 
   if (!initialized) {
-    if (tokenInput) tokenInput.value = readStorage(STORAGE_KEYS.token);
+    if (tokenInput) {
+      const storedToken = readStorage(STORAGE_KEYS.token);
+      tokenInput.value = storedToken || DEFAULT_API_TOKEN;
+    }
     if (queryInput) queryInput.value = readStorage(STORAGE_KEYS.query);
     if (locationInput) locationInput.value = readStorage(STORAGE_KEYS.location);
     if (radiusSelect) {
