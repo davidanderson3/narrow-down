@@ -63,7 +63,11 @@ test('can switch between media tabs', async ({ page }) => {
   await expect(page.locator('#showsPanel')).toBeVisible();
   await expect(page.locator('#moviesPanel')).toBeHidden();
 
+  await page.click('button[data-target="comedyPanel"]');
+  await expect(page.locator('#comedyPanel')).toBeVisible();
+  await expect(page.locator('#showsPanel')).toBeHidden();
+
   await page.click('button[data-target="recipesPanel"]');
   await expect(page.locator('#recipesPanel')).toBeVisible();
-  await expect(page.locator('#showsPanel')).toBeHidden();
+  await expect(page.locator('#comedyPanel')).toBeHidden();
 });
