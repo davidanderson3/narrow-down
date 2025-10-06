@@ -5,7 +5,7 @@ const API_KEY_STORAGE = 'moviesApiKey';
 const DEFAULT_INTEREST = 3;
 const MAX_DISCOVER_PAGES = 3;
 const MAX_CREDIT_REQUESTS = 20;
-const MIN_DISCOVER_RESULTS = 10;
+const MIN_DISCOVER_RESULTS = 40;
 const PREF_COLLECTION = 'moviePreferences';
 const MIN_VOTE_AVERAGE = 7;
 const MIN_VOTE_COUNT = 50;
@@ -45,7 +45,8 @@ const DISCOVER_QUERY_DEFAULTS = {
   sort_by: 'popularity.desc',
   include_adult: 'false',
   include_video: 'false',
-  language: 'en-US'
+  language: 'en-US',
+  'vote_count.gte': String(MIN_VOTE_COUNT)
 };
 
 function buildDiscoverParams(overrides = {}) {
@@ -646,40 +647,57 @@ function applyPriorityOrdering(movies) {
   if (!Array.isArray(movies) || !movies.length) return movies || [];
 
   const candidates = selectPriorityCandidates(movies);
-  if (!candidates.length) return [];
 
-  const maxVotes = Math.max(...candidates.map(m => Math.max(0, m.vote_count || 0)), 1);
+  const maxVotes = Math.max(...movies.map(m => Math.max(0, m?.vote_count || 0)), 1);
   const now = Date.now();
   const yearMs = 365 * 24 * 60 * 60 * 1000;
 
-  return candidates
-    .map(movie => {
-      const rawAverage = Math.max(0, Math.min(10, movie.vote_average ?? 0)) / 10;
-      const votes = Math.max(0, movie.vote_count || 0);
-      const voteVolume = Math.log10(votes + 1) / Math.log10(maxVotes + 1);
+  const prioritize = list =>
+    list
+      .map(movie => {
+        const rawAverage = Math.max(0, Math.min(10, movie.vote_average ?? 0)) / 10;
+        const votes = Math.max(0, movie.vote_count || 0);
+        const voteVolume = Math.log10(votes + 1) / Math.log10(maxVotes + 1);
 
-      const confidence = Math.min(1, votes / 150);
-      const adjustedAverage = rawAverage * confidence + 0.6 * (1 - confidence);
+        const confidence = Math.min(1, votes / 150);
+        const adjustedAverage = rawAverage * confidence + 0.6 * (1 - confidence);
 
-      let recency = 0.5;
-      if (movie.release_date) {
-        const release = new Date(movie.release_date).getTime();
-        if (!Number.isNaN(release)) {
-          const diff = now - release;
-          if (diff <= 0) {
-            recency = 1;
-          } else if (diff >= yearMs) {
-            recency = 0;
-          } else {
-            recency = 1 - diff / yearMs;
+        let recency = 0.5;
+        if (movie.release_date) {
+          const release = new Date(movie.release_date).getTime();
+          if (!Number.isNaN(release)) {
+            const diff = now - release;
+            if (diff <= 0) {
+              recency = 1;
+            } else if (diff >= yearMs) {
+              recency = 0;
+            } else {
+              recency = 1 - diff / yearMs;
+            }
           }
         }
-      }
 
-      const priority = (adjustedAverage * 0.3) + (Math.sqrt(Math.max(0, voteVolume)) * 0.5) + (recency * 0.2);
-      return { ...movie, __priority: priority };
-    })
-    .sort((a, b) => (b.__priority ?? 0) - (a.__priority ?? 0));
+        const priority =
+          adjustedAverage * 0.3 + Math.sqrt(Math.max(0, voteVolume)) * 0.5 + recency * 0.2;
+        return { ...movie, __priority: priority };
+      })
+      .sort((a, b) => (b.__priority ?? 0) - (a.__priority ?? 0));
+
+  const dropPriority = movie => {
+    if (!movie || typeof movie !== 'object') return movie;
+    const { __priority, ...rest } = movie;
+    return rest;
+  };
+
+  const pool = candidates.length
+    ? candidates
+    : movies.filter(movie => movie && meetsQualityThreshold(movie, 6, 10));
+
+  if (!pool.length) {
+    return prioritize(movies.slice()).map(dropPriority);
+  }
+
+  return prioritize(pool).map(dropPriority);
 }
 
 async function fetchMoviesDirect(apiKey) {
