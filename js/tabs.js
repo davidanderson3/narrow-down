@@ -27,6 +27,8 @@ function ensureRestaurantsPanelInitialized() {
 export const PANELS = [
   'moviesPanel',
   'showsPanel',
+  'eventbritePanel',
+  'facebookEventsPanel',
   'comedyPanel',
   'recipesPanel',
   'restaurantsPanel'
@@ -35,6 +37,8 @@ export const PANELS = [
 export const PANEL_NAMES = {
   moviesPanel: 'Movies',
   showsPanel: 'Live Music',
+  eventbritePanel: 'Eventbrite Events',
+  facebookEventsPanel: 'Facebook Events',
   comedyPanel: 'Stand-Up Comedy',
   recipesPanel: 'Recipes',
   restaurantsPanel: 'Restaurants'
@@ -96,6 +100,11 @@ export async function initTabs(user, db) {
       else if (target === 'showsPanel') {
         await window.initShowsPanel();
       }
+      else if (target === 'eventbritePanel' && typeof window.initEventbritePanel === 'function') {
+        await window.initEventbritePanel();
+      }
+      else if (target === 'facebookEventsPanel' && typeof window.initFacebookEventsPanel === 'function') {
+        await window.initFacebookEventsPanel();
       else if (target === 'comedyPanel') {
         await window.initComedyPanel();
       }
@@ -136,6 +145,11 @@ export async function initTabs(user, db) {
     else if (initial === 'showsPanel') {
       window.initShowsPanel();
     }
+    else if (initial === 'eventbritePanel' && typeof window.initEventbritePanel === 'function') {
+      window.initEventbritePanel();
+    }
+    else if (initial === 'facebookEventsPanel' && typeof window.initFacebookEventsPanel === 'function') {
+      window.initFacebookEventsPanel();
     else if (initial === 'comedyPanel') {
       window.initComedyPanel();
     }
