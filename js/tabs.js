@@ -106,6 +106,8 @@ export async function initTabs(user, db) {
       ) {
         await window.initFacebookEventsPanel();
       } else if (target === 'comedyPanel' && typeof window.initComedyPanel === 'function') {
+      }
+      else if (target === 'comedyPanel') {
         await window.initComedyPanel();
       } else if (target === 'recipesPanel' && typeof window.initRecipesPanel === 'function') {
         await window.initRecipesPanel();
@@ -152,6 +154,8 @@ export async function initTabs(user, db) {
     ) {
       window.initFacebookEventsPanel();
     } else if (initial === 'comedyPanel' && typeof window.initComedyPanel === 'function') {
+    }
+    else if (initial === 'comedyPanel') {
       window.initComedyPanel();
     } else if (initial === 'recipesPanel' && typeof window.initRecipesPanel === 'function') {
       window.initRecipesPanel();
