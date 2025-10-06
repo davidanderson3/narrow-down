@@ -5,6 +5,7 @@ const API_KEY_STORAGE = 'moviesApiKey';
 const DEFAULT_INTEREST = 3;
 const MAX_DISCOVER_PAGES = 3;
 const MAX_CREDIT_REQUESTS = 20;
+const MIN_DISCOVER_RESULTS = 10;
 const PREF_COLLECTION = 'moviePreferences';
 const MIN_VOTE_AVERAGE = 7;
 const MIN_VOTE_COUNT = 50;
@@ -39,6 +40,20 @@ const handlers = {
   handleKeydown: null,
   handleChange: null
 };
+
+const DISCOVER_QUERY_DEFAULTS = {
+  sort_by: 'popularity.desc',
+  include_adult: 'false',
+  include_video: 'false',
+  language: 'en-US'
+};
+
+function buildDiscoverParams(overrides = {}) {
+  return {
+    ...DISCOVER_QUERY_DEFAULTS,
+    ...overrides
+  };
+}
 
 function getNameList(input) {
   if (!input) return [];
@@ -671,14 +686,12 @@ async function fetchMoviesDirect(apiKey) {
   const movies = [];
   const seen = new Set();
   for (let page = 1; page <= MAX_DISCOVER_PAGES; page++) {
-    const params = new URLSearchParams({
-      api_key: apiKey,
-      sort_by: 'popularity.desc',
-      include_adult: 'false',
-      include_video: 'false',
-      language: 'en-US',
-      page: String(page)
-    });
+    const params = new URLSearchParams(
+      buildDiscoverParams({
+        api_key: apiKey,
+        page: String(page)
+      })
+    );
     const res = await fetch(`https://api.themoviedb.org/3/discover/movie?${params.toString()}`);
     if (!res.ok) throw new Error('Failed to fetch movies');
     const data = await res.json();
@@ -688,6 +701,9 @@ async function fetchMoviesDirect(apiKey) {
         movies.push(movie);
       }
     });
+    if (movies.length >= MIN_DISCOVER_RESULTS) {
+      break;
+    }
   }
   return movies;
 }
@@ -707,19 +723,19 @@ async function fetchMoviesFromProxy() {
   const movies = [];
   const seen = new Set();
   for (let page = 1; page <= MAX_DISCOVER_PAGES; page++) {
-    const data = await callTmdbProxy('discover', {
-      sort_by: 'popularity.desc',
-      include_adult: 'false',
-      include_video: 'false',
-      language: 'en-US',
-      page: String(page)
-    });
+    const data = await callTmdbProxy(
+      'discover',
+      buildDiscoverParams({ page: String(page) })
+    );
     (data.results || []).forEach(movie => {
       if (!seen.has(movie.id)) {
         seen.add(movie.id);
         movies.push(movie);
       }
     });
+    if (movies.length >= MIN_DISCOVER_RESULTS) {
+      break;
+    }
   }
   return movies;
 }
