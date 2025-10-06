@@ -741,26 +741,10 @@ export async function initShowsPanel() {
   const tokenBtn = document.getElementById('spotifyTokenBtn');
   const statusEl = document.getElementById('spotifyStatus');
   const apiKeyInput = document.getElementById('ticketmasterApiKey');
-  const discoverBtn = document.getElementById('discoverShowsBtn');
   const tabsContainer = document.getElementById('showsTabs');
   const tokenInput = document.getElementById('spotifyToken');
 
   spotifyTokenInputRef = tokenInput || null;
-
-  const defaultDiscoverLabel = discoverBtn?.dataset.defaultLabel || discoverBtn?.textContent?.trim() || 'Discover Shows';
-  const loadingDiscoverLabel = discoverBtn?.dataset.loadingLabel || 'Discovering…';
-
-  const setDiscoverButtonIdle = () => {
-    if (!discoverBtn) return;
-    discoverBtn.disabled = false;
-    discoverBtn.textContent = defaultDiscoverLabel;
-  };
-
-  const setDiscoverButtonLoading = () => {
-    if (!discoverBtn) return;
-    discoverBtn.disabled = true;
-    discoverBtn.textContent = loadingDiscoverLabel;
-  };
 
   if (tabsContainer) {
     const tabButtons = Array.from(tabsContainer.querySelectorAll('.shows-tab'));
@@ -1068,19 +1052,7 @@ export async function initShowsPanel() {
 
   tokenBtn?.addEventListener('click', startAuth);
 
-  if (discoverBtn) {
-    discoverBtn.addEventListener('click', async () => {
-      setDiscoverButtonLoading();
-      try {
-        await loadShows();
-      } finally {
-        setDiscoverButtonIdle();
-      }
-    });
-  }
-
   await loadShows();
-  setDiscoverButtonIdle();
 }
 
 window.initShowsPanel = initShowsPanel;

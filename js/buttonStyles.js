@@ -23,61 +23,22 @@ function isIconButton(btn) {
 }
 
 // Apply styling to a single button (unless it’s detected as an icon)
-function resetButtonStyles(btn) {
-  btn.style.backgroundColor = '';
-  btn.style.color = '';
-  btn.style.border = '';
-  btn.style.cursor = '';
-}
-
-function shouldSkipStyling(btn) {
-  if (!btn) return true;
-
-  // 0️⃣ Don’t restyle our list-selector tabs
-  if (btn.classList.contains('list-tab') || btn.closest('#listTabs')) {
-    return true;
-  }
-
-  // Skip main navigation & panel tabs so they retain their bespoke styles
-  const tabSelectors = [
-    '.tab-button',
-    '.movie-tab',
-    '.shows-tab',
-    '.comedy-tab',
-    '.calendar-mobile-tab'
-  ];
-  if (tabSelectors.some(selector => btn.matches(selector))) {
-    return true;
-  }
-  const tabContainers = [
-    '#tabsContainer',
-    '.movie-tabs',
-    '.shows-tabs',
-    '.comedy-tabs',
-    '.calendar-mobile-tabs'
-  ];
-  if (tabContainers.some(selector => btn.closest(selector))) {
-    return true;
-  }
-
-  // 1️⃣ Skip icon-only buttons or tag-filter buttons
-  if (isIconButton(btn)) return true;
-  if (btn.classList.contains('tag-filter-button')) return true;
-
-  return false;
-}
-
 function styleButton(btn) {
-  if (shouldSkipStyling(btn)) {
-    resetButtonStyles(btn);
+  // 0️⃣ Don’t restyle our list-selector tabs
+  if (btn.classList.contains('list-tab')
+      || btn.closest('#listTabs')) {
     return;
   }
 
+  // 1️⃣ Skip icon-only buttons or tag-filter buttons
+  if (isIconButton(btn)) return;
+  if (btn.classList.contains('tag-filter-button')) return;
+
   // 2️⃣ Style everything else
   btn.style.backgroundColor = randomDarkColor();
-  btn.style.color = '#fff';
-  btn.style.border = 'none';
-  btn.style.cursor = 'pointer';
+  btn.style.color           = '#fff';
+  btn.style.border          = 'none';
+  btn.style.cursor          = 'pointer';
 }
 
 
