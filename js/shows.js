@@ -37,6 +37,10 @@ let userLocationRequested = false;
 const SHOW_PREFS_STORAGE_KEY = 'showsPreferences';
 let currentShows = [];
 let showsEmptyReason = null;
+let lastTopArtists = [];
+let similarArtistsCache = { seedKey: '', artists: null, generatedAt: 0 };
+let spotifyTokenInputRef = null;
+let updateSpotifyStatusRef = null;
 
 const TICKETMASTER_CACHE_STORAGE_KEY = 'ticketmasterCacheV1';
 const TICKETMASTER_CACHE_TTL = 1000 * 60 * 30; // 30 minutes
@@ -243,6 +247,229 @@ function getShowStatus(id) {
   return showPreferences[id]?.status || null;
 }
 
+function computeSimilarArtistsSeedKey(artistsList = lastTopArtists) {
+  return artistsList
+    .map(artist => artist?.id || artist?.name || '')
+    .filter(Boolean)
+    .join('|');
+}
+
+function getStoredSpotifyToken() {
+  return (
+    spotifyTokenInputRef?.value?.trim() ||
+    (typeof localStorage !== 'undefined' && localStorage.getItem('spotifyToken')) ||
+    ''
+  );
+}
+
+function renderSimilarArtistsMessage(container, message) {
+  if (!container) return;
+  container.hidden = false;
+  container.innerHTML = '';
+  const messageEl = document.createElement('div');
+  messageEl.className = 'shows-suggestions__message';
+  messageEl.textContent = message;
+  container.appendChild(messageEl);
+}
+
+function renderSimilarArtistsSuggestions(container, artists) {
+  if (!container) return;
+  container.hidden = false;
+  container.innerHTML = '';
+
+  if (!Array.isArray(artists) || artists.length === 0) {
+    renderSimilarArtistsMessage(container, 'No similar artists found right now. Try again later.');
+    return;
+  }
+
+  const title = document.createElement('div');
+  title.className = 'shows-suggestions__title';
+  title.textContent = 'You might also like:';
+  container.appendChild(title);
+
+  const list = document.createElement('ul');
+  list.className = 'shows-suggestions__list';
+
+  for (const artist of artists) {
+    const item = document.createElement('li');
+    item.className = 'shows-suggestions__item';
+
+    const firstImage = artist?.images?.find(img => img?.url) || artist?.images?.[0];
+    if (firstImage?.url) {
+      const img = document.createElement('img');
+      img.src = firstImage.url;
+      img.alt = `${artist?.name || 'Artist'} photo`;
+      img.loading = 'lazy';
+      item.appendChild(img);
+    } else {
+      const avatar = document.createElement('div');
+      avatar.className = 'shows-suggestions__avatar';
+      const initial = (artist?.name || '?').trim().charAt(0).toUpperCase();
+      avatar.textContent = initial || '?';
+      item.appendChild(avatar);
+    }
+
+    const info = document.createElement('div');
+    info.className = 'shows-suggestions__info';
+
+    if (artist?.external_urls?.spotify) {
+      const link = document.createElement('a');
+      link.href = artist.external_urls.spotify;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.textContent = artist?.name || 'Unknown artist';
+      info.appendChild(link);
+    } else {
+      const nameEl = document.createElement('span');
+      nameEl.textContent = artist?.name || 'Unknown artist';
+      info.appendChild(nameEl);
+    }
+
+    const metaParts = [];
+    const genres = Array.isArray(artist?.genres) ? artist.genres.slice(0, 2) : [];
+    if (genres.length) {
+      metaParts.push(genres.join(', '));
+    }
+    if (Number.isFinite(artist?.popularity)) {
+      metaParts.push(`Popularity ${Math.round(artist.popularity)}`);
+    }
+    if (metaParts.length) {
+      const meta = document.createElement('div');
+      meta.className = 'shows-suggestions__meta';
+      meta.textContent = metaParts.join(' • ');
+      info.appendChild(meta);
+    }
+
+    item.appendChild(info);
+    list.appendChild(item);
+  }
+
+  container.appendChild(list);
+}
+
+async function fetchSimilarArtists(token, seedKey) {
+  const seeds = lastTopArtists.filter(artist => artist?.id).slice(0, 5);
+  if (!token || !seeds.length) {
+    similarArtistsCache = { seedKey, artists: null, generatedAt: 0 };
+    return [];
+  }
+
+  const suggestions = new Map();
+  const seedIds = new Set(seeds.map(seed => seed.id));
+  let unauthorized = false;
+
+  for (const seed of seeds) {
+    try {
+      const res = await fetch(`https://api.spotify.com/v1/artists/${encodeURIComponent(seed.id)}/related-artists`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.status === 401) {
+        unauthorized = true;
+        break;
+      }
+      if (!res.ok) {
+        continue;
+      }
+      const data = await res.json();
+      const related = Array.isArray(data?.artists) ? data.artists : [];
+      for (const artist of related) {
+        if (!artist?.id || seedIds.has(artist.id)) continue;
+        if (!suggestions.has(artist.id)) {
+          suggestions.set(artist.id, {
+            artist,
+            score: Number.isFinite(artist?.popularity) ? artist.popularity : 0
+          });
+        } else {
+          const entry = suggestions.get(artist.id);
+          const score = Number.isFinite(artist?.popularity) ? artist.popularity : 0;
+          entry.score = Math.max(entry.score, score);
+        }
+      }
+    } catch (err) {
+      console.warn('Unable to load similar artists for seed', seed?.id, err);
+    }
+  }
+
+  if (unauthorized) {
+    similarArtistsCache = { seedKey: '', artists: null, generatedAt: 0 };
+    throw new Error('unauthorized');
+  }
+
+  const result = Array.from(suggestions.values())
+    .sort((a, b) => (b.score || 0) - (a.score || 0))
+    .slice(0, 10)
+    .map(entry => entry.artist);
+
+  similarArtistsCache = { seedKey, artists: result, generatedAt: Date.now() };
+  return result;
+}
+
+async function handleSuggestSimilarArtists(button, container) {
+  if (!button || !container) return;
+
+  const defaultLabel = button.dataset.defaultLabel || 'Suggest similar artists';
+  const refreshLabel = button.dataset.refreshLabel || 'Refresh similar artist suggestions';
+  const loadingLabel = 'Finding artists…';
+
+  const token = getStoredSpotifyToken();
+  if (!token) {
+    renderSimilarArtistsMessage(
+      container,
+      'Login to Spotify above to get personalized artist suggestions.'
+    );
+    button.disabled = false;
+    button.textContent = defaultLabel;
+    return;
+  }
+
+  if (!lastTopArtists.length) {
+    renderSimilarArtistsMessage(
+      container,
+      'Start listening on Spotify so we can learn your favorite artists first.'
+    );
+    button.disabled = false;
+    button.textContent = defaultLabel;
+    return;
+  }
+
+  const seedKey = computeSimilarArtistsSeedKey();
+  if (
+    similarArtistsCache.seedKey === seedKey &&
+    Array.isArray(similarArtistsCache.artists)
+  ) {
+    renderSimilarArtistsSuggestions(container, similarArtistsCache.artists);
+    button.disabled = false;
+    button.textContent = refreshLabel;
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = loadingLabel;
+  renderSimilarArtistsMessage(container, 'Finding similar artists based on your top Spotify picks…');
+
+  try {
+    const artists = await fetchSimilarArtists(token, seedKey);
+    renderSimilarArtistsSuggestions(container, artists);
+    button.textContent = refreshLabel;
+  } catch (err) {
+    if (err?.message === 'unauthorized') {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem('spotifyToken');
+      }
+      updateSpotifyStatusRef?.();
+      renderSimilarArtistsMessage(
+        container,
+        'Spotify session expired. Please login again to refresh suggestions.'
+      );
+    } else {
+      renderSimilarArtistsMessage(container, 'Unable to load similar artists. Please try again.');
+    }
+    button.textContent = defaultLabel;
+  } finally {
+    button.disabled = false;
+  }
+}
+
 function renderShowsList() {
   const listEl = document.getElementById('ticketmasterList');
   const interestedEl = document.getElementById('ticketmasterInterestedList');
@@ -257,6 +484,9 @@ function renderShowsList() {
 
   if (!currentShows.length) {
     if (listEl) {
+      const emptyWrapper = document.createElement('div');
+      emptyWrapper.className = 'shows-empty-state';
+
       const emptyMessage =
         showsEmptyReason === 'noNearby'
           ? 'No nearby shows within 300 miles.'
@@ -264,7 +494,43 @@ function renderShowsList() {
       const emptyEl = document.createElement('p');
       emptyEl.className = 'shows-empty';
       emptyEl.textContent = emptyMessage;
-      listEl.appendChild(emptyEl);
+      emptyWrapper.appendChild(emptyEl);
+
+      const seedKey = computeSimilarArtistsSeedKey();
+      const hasCachedSuggestions =
+        similarArtistsCache.seedKey === seedKey &&
+        Array.isArray(similarArtistsCache.artists);
+
+      const actions = document.createElement('div');
+      actions.className = 'shows-empty-actions';
+
+      const suggestBtn = document.createElement('button');
+      suggestBtn.type = 'button';
+      suggestBtn.className = 'shows-empty__button';
+      suggestBtn.dataset.defaultLabel = 'Suggest similar artists';
+      suggestBtn.dataset.refreshLabel = 'Refresh similar artist suggestions';
+      suggestBtn.textContent = hasCachedSuggestions
+        ? suggestBtn.dataset.refreshLabel
+        : suggestBtn.dataset.defaultLabel;
+
+      const suggestionsContainer = document.createElement('div');
+      suggestionsContainer.className = 'shows-suggestions';
+      suggestionsContainer.hidden = !hasCachedSuggestions;
+
+      suggestBtn.addEventListener('click', () =>
+        handleSuggestSimilarArtists(suggestBtn, suggestionsContainer)
+      );
+
+      actions.appendChild(suggestBtn);
+      emptyWrapper.appendChild(actions);
+
+      if (hasCachedSuggestions && similarArtistsCache.artists) {
+        renderSimilarArtistsSuggestions(suggestionsContainer, similarArtistsCache.artists);
+      }
+
+      emptyWrapper.appendChild(suggestionsContainer);
+
+      listEl.appendChild(emptyWrapper);
     }
     if (interestedEl) {
       const emptyInterested = document.createElement('p');
@@ -473,10 +739,11 @@ export async function initShowsPanel() {
   if (!listEl) return;
   const interestedListEl = document.getElementById('ticketmasterInterestedList');
   const tokenBtn = document.getElementById('spotifyTokenBtn');
-  const tokenInput = document.getElementById('spotifyToken');
   const statusEl = document.getElementById('spotifyStatus');
   const apiKeyInput = document.getElementById('ticketmasterApiKey');
   const tabsContainer = document.getElementById('showsTabs');
+
+  spotifyTokenInputRef = tokenInput;
 
   if (tabsContainer) {
     const tabButtons = Array.from(tabsContainer.querySelectorAll('.shows-tab'));
@@ -541,27 +808,27 @@ export async function initShowsPanel() {
     const storedToken =
       (typeof localStorage !== 'undefined' && localStorage.getItem('spotifyToken')) || '';
     if (storedToken) {
-      if (tokenBtn) tokenBtn.textContent = 'Login to Spotify';
+      if (tokenBtn) {
+        tokenBtn.textContent = 'Login to Spotify';
+        tokenBtn.style.display = 'none';
+      }
       if (statusEl) {
         statusEl.textContent = 'Signed in to Spotify';
         statusEl.classList.add('shows-spotify-status');
       }
-      if (tokenInput) {
-        tokenInput.disabled = true;
-        tokenInput.style.display = 'none';
-      }
     } else {
-      if (tokenBtn) tokenBtn.textContent = 'Login to Spotify';
+      if (tokenBtn) {
+        tokenBtn.textContent = 'Login to Spotify';
+        tokenBtn.style.display = '';
+      }
       if (statusEl) {
         statusEl.textContent = '';
         statusEl.classList.remove('shows-spotify-status');
       }
-      if (tokenInput) {
-        tokenInput.disabled = false;
-        tokenInput.style.display = '';
-      }
     }
   };
+
+  updateSpotifyStatusRef = updateSpotifyStatus;
 
   updateSpotifyStatus();
 
@@ -600,7 +867,7 @@ export async function initShowsPanel() {
 
   const params = new URLSearchParams(window.location.search);
   const authCode = params.get('code');
-  if (authCode && tokenInput) {
+  if (authCode) {
     try {
       const verifier =
         (typeof localStorage !== 'undefined' && localStorage.getItem('spotifyCodeVerifier')) || '';
@@ -619,7 +886,6 @@ export async function initShowsPanel() {
       if (res.ok) {
         const data = await res.json();
         const accessToken = data.access_token || '';
-        if (tokenInput) tokenInput.value = '';
         if (typeof localStorage !== 'undefined') {
           localStorage.setItem('spotifyToken', accessToken);
         }
@@ -634,7 +900,6 @@ export async function initShowsPanel() {
 
   const loadShows = async () => {
     const token =
-      tokenInput?.value.trim() ||
       (typeof localStorage !== 'undefined' && localStorage.getItem('spotifyToken')) || '';
     const manualApiKey =
       apiKeyInput?.value.trim() ||
@@ -644,11 +909,6 @@ export async function initShowsPanel() {
     if (!token) {
       listEl.textContent = 'Please login to Spotify.';
       return;
-    }
-
-    if (tokenInput?.value && typeof localStorage !== 'undefined') {
-      localStorage.setItem('spotifyToken', token);
-      updateSpotifyStatus();
     }
 
     if (requiresManualApiKey && !manualApiKey) {
@@ -677,6 +937,11 @@ export async function initShowsPanel() {
       if (!artistRes.ok) throw new Error(`Spotify HTTP ${artistRes.status}`);
       const artistData = await artistRes.json();
       const artists = artistData.items || [];
+      const newSeedKey = computeSimilarArtistsSeedKey(artists);
+      if (similarArtistsCache.seedKey !== newSeedKey) {
+        similarArtistsCache = { seedKey: newSeedKey, artists: null, generatedAt: 0 };
+      }
+      lastTopArtists = artists;
       if (artists.length === 0) {
         listEl.textContent = 'No artists found.';
         return;
@@ -779,6 +1044,8 @@ export async function initShowsPanel() {
     } catch (err) {
       console.error('Failed to load shows', err);
       listEl.textContent = 'Failed to load shows.';
+      lastTopArtists = [];
+      similarArtistsCache = { seedKey: '', artists: null, generatedAt: 0 };
     }
   };
 

@@ -163,6 +163,10 @@ export async function initRecipesPanel() {
               facts,
               tagGroups,
               badges,
+              score:
+                typeof r.spoonacularScore === 'number'
+                  ? r.spoonacularScore
+                  : null,
               sourceName: r.sourceName || '',
               sourceUrl: r.sourceUrl || '',
               winePairing
@@ -174,8 +178,11 @@ export async function initRecipesPanel() {
         return;
       }
       const hidden = readArray('recipesHidden').map(String);
+      const scoreValue = recipe =>
+        typeof recipe.score === 'number' ? recipe.score : -Infinity;
       const limited = recipes
         .filter(r => !hidden.includes(r.storageKey))
+        .sort((a, b) => scoreValue(b) - scoreValue(a))
         .slice(0, 10);
       if (limited.length === 0) {
         listEl.innerHTML = '<p><em>No recipes to show. Try unhiding recipes or searching again.</em></p>';

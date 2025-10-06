@@ -350,6 +350,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const SIGNED_OUT_TABS = [
     'moviesPanel',
     'showsPanel',
+    'comedyPanel',
     'recipesPanel',
     'restaurantsPanel'
   ];

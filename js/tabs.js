@@ -29,6 +29,7 @@ export const PANELS = [
   'showsPanel',
   'eventbritePanel',
   'facebookEventsPanel',
+  'comedyPanel',
   'recipesPanel',
   'restaurantsPanel'
 ];
@@ -38,6 +39,7 @@ export const PANEL_NAMES = {
   showsPanel: 'Live Music',
   eventbritePanel: 'Eventbrite Events',
   facebookEventsPanel: 'Facebook Events',
+  comedyPanel: 'Stand-Up Comedy',
   recipesPanel: 'Recipes',
   restaurantsPanel: 'Restaurants'
 };
@@ -103,6 +105,8 @@ export async function initTabs(user, db) {
       }
       else if (target === 'facebookEventsPanel' && typeof window.initFacebookEventsPanel === 'function') {
         await window.initFacebookEventsPanel();
+      else if (target === 'comedyPanel') {
+        await window.initComedyPanel();
       }
       else if (target === 'recipesPanel') {
         await window.initRecipesPanel();
@@ -146,6 +150,8 @@ export async function initTabs(user, db) {
     }
     else if (initial === 'facebookEventsPanel' && typeof window.initFacebookEventsPanel === 'function') {
       window.initFacebookEventsPanel();
+    else if (initial === 'comedyPanel') {
+      window.initComedyPanel();
     }
     else if (initial === 'recipesPanel') {
       window.initRecipesPanel();
