@@ -180,6 +180,43 @@ body.mild-glow {
   height: 6px;
 }
 
+.navbar .tabs {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 8px 24px 0;
+  margin: 0;
+  background: linear-gradient(180deg, rgba(249, 246, 240, 0.9), rgba(249, 246, 240, 0.6));
+  border-bottom: 1px solid #d3ded5;
+  overflow-x: auto;
+}
+
+.navbar .tabs .tab-button {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 8px 16px;
+  background: #f4f7f4;
+  color: #314437;
+  border: 1px solid #c7d5ca;
+  border-bottom: 3px solid transparent;
+  border-radius: 10px 10px 0 0;
+  font-weight: 600;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.navbar .tabs .tab-button:hover:not(.active) {
+  background: #e7f0ea;
+  border-color: #a9c4b4;
+}
+
+.navbar .tabs .tab-button.active {
+  background: #ffffff;
+  color: #233025;
+  border-color: #7aa68c;
+  border-bottom-color: #ffffff;
+  box-shadow: 0 4px 10px rgba(122, 166, 140, 0.18);
+}
+
 .navbar-right button:hover {
   background-color: #f2f2f2;
 }
