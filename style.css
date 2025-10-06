@@ -2552,6 +2552,16 @@ h2 {
   color: #1f3631;
 }
 
+.restaurant-card__title-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.restaurant-card__title-link:hover,
+.restaurant-card__title-link:focus-visible {
+  text-decoration: underline;
+}
+
 .rating-badge {
   display: inline-flex;
   align-items: center;
@@ -2587,6 +2597,11 @@ h2 {
   display: grid;
   gap: 0.45rem;
   font-size: 0.92rem;
+}
+
+.restaurant-meta__label {
+  font-weight: 600;
+  color: #1f3631;
 }
 
 .restaurant-chips {
