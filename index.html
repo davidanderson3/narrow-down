@@ -35,7 +35,6 @@
         <button class="tab-button active" data-target="moviesPanel">Movies</button>
         <button class="tab-button" data-target="showsPanel">Live Music</button>
         <button class="tab-button" data-target="eventbritePanel">Eventbrite Events</button>
-        <button class="tab-button" data-target="facebookEventsPanel">Facebook Events</button>
         <button class="tab-button" data-target="comedyPanel">Stand-Up Comedy</button>
         <button class="tab-button" data-target="recipesPanel">Recipes</button>
         <button class="tab-button" data-target="restaurantsPanel">Restaurants</button>
@@ -139,30 +138,6 @@
         </div>
       </div>
 
-    <!-- FACEBOOK EVENTS PANEL -->
-      <div id="facebookEventsPanel" class="main-layout" style="display:none">
-        <div class="full-column">
-          <div class="panel-header">
-            <h2>Facebook Events</h2>
-            <button type="button" class="icon-btn tab-hide-btn" title="Hide Tab">🕒</button>
-          </div>
-          <div id="facebookEventsForm" style="margin-bottom:1rem;display:flex;flex-wrap:wrap;gap:.5rem;align-items:flex-end;">
-            <input type="password" id="facebookAccessToken" placeholder="Facebook Access Token" style="flex:1 1 220px;min-width:200px;">
-            <input type="text" id="facebookPageId" placeholder="Page or Organizer ID" style="flex:1 1 200px;min-width:180px;">
-            <label style="display:flex;flex-direction:column;font-size:.85rem;gap:.25rem;">
-              Limit
-              <select id="facebookLimit" style="min-width:120px;">
-                <option value="10" selected>10</option>
-                <option value="25">25</option>
-                <option value="50">50</option>
-              </select>
-            </label>
-            <button type="button" id="facebookFetchBtn">Fetch Events</button>
-          </div>
-          <div id="facebookEventsList" class="decision-container"></div>
-          <footer class="tmdb-notice" style="margin-top:0.75rem;">
-            Uses the <a href="https://developers.facebook.com/docs/graph-api/reference/page/events/" target="_blank" rel="noopener noreferrer">Facebook Graph API</a>.
-          </footer>
     <!-- STAND-UP COMEDY PANEL -->
       <div id="comedyPanel" class="main-layout" style="display:none">
         <div class="full-column">
@@ -276,7 +251,6 @@
   <script type="module" src="js/movies.js"></script>
   <script type="module" src="js/shows.js"></script>
   <script type="module" src="js/eventbrite.js"></script>
-  <script type="module" src="js/facebookEvents.js"></script>
   <script type="module" src="js/comedy.js"></script>
   <script type="module" src="js/recipes.js"></script>
   <script type="module" src="js/restaurants.js"></script>
