@@ -802,6 +802,141 @@ button:hover {
   font-weight: 600;
 }
 
+
+.shows-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.shows-empty-state .shows-empty {
+  width: 100%;
+}
+
+.shows-empty-actions {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.shows-empty__button {
+  background: #1f4a40;
+  border: none;
+  border-radius: 999px;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0.6rem 1.5rem;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.shows-empty__button:hover {
+  background: #163a32;
+}
+
+.shows-empty__button:focus-visible {
+  outline: 2px solid #3fa284;
+  outline-offset: 2px;
+}
+
+.shows-empty__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+  transform: none;
+}
+
+.shows-suggestions {
+  background: #f7fbf9;
+  border: 1px solid #d4e6de;
+  border-radius: 12px;
+  padding: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.shows-suggestions__title {
+  color: #1f4a40;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+  text-align: center;
+}
+
+.shows-suggestions__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.shows-suggestions__item {
+  background: #fff;
+  border: 1px solid #d4e6de;
+  border-radius: 10px;
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.shows-suggestions__item img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.shows-suggestions__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #dcefe7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #1f4a40;
+  flex-shrink: 0;
+}
+
+.shows-suggestions__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.shows-suggestions__info a {
+  color: #1f4a40;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.shows-suggestions__info a:hover {
+  text-decoration: underline;
+}
+
+.shows-suggestions__meta {
+  font-size: 0.8rem;
+  color: #5f6368;
+}
+
+.shows-suggestions__message {
+  background: #f0faf5;
+  border: 1px dashed #a4cabb;
+  border-radius: 10px;
+  padding: 0.75rem;
+  color: #1f4a40;
+  font-weight: 500;
+  text-align: center;
+
+#spotifyStatus {
+  margin-left: auto;
+
+}
+
 #spotifyStatus,
 .shows-spotify-status {
   font-size: 0.85rem;
@@ -2597,6 +2732,7 @@ h2 {
 
 .restaurants-map {
   min-height: 260px;
+  aspect-ratio: 1 / 1;
   border-radius: 18px;
   overflow: hidden;
   box-shadow: 0 12px 28px rgba(25, 55, 45, 0.12);
