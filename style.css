@@ -802,6 +802,10 @@ button:hover {
   font-weight: 600;
 }
 
+#spotifyStatus {
+  margin-left: auto;
+}
+
 #spotifyStatus,
 .shows-spotify-status {
   font-size: 0.85rem;
