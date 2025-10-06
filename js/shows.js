@@ -473,7 +473,6 @@ export async function initShowsPanel() {
   if (!listEl) return;
   const interestedListEl = document.getElementById('ticketmasterInterestedList');
   const tokenBtn = document.getElementById('spotifyTokenBtn');
-  const tokenInput = document.getElementById('spotifyToken');
   const statusEl = document.getElementById('spotifyStatus');
   const apiKeyInput = document.getElementById('ticketmasterApiKey');
   const tabsContainer = document.getElementById('showsTabs');
@@ -541,24 +540,22 @@ export async function initShowsPanel() {
     const storedToken =
       (typeof localStorage !== 'undefined' && localStorage.getItem('spotifyToken')) || '';
     if (storedToken) {
-      if (tokenBtn) tokenBtn.textContent = 'Login to Spotify';
+      if (tokenBtn) {
+        tokenBtn.textContent = 'Login to Spotify';
+        tokenBtn.style.display = 'none';
+      }
       if (statusEl) {
         statusEl.textContent = 'Signed in to Spotify';
         statusEl.classList.add('shows-spotify-status');
       }
-      if (tokenInput) {
-        tokenInput.disabled = true;
-        tokenInput.style.display = 'none';
-      }
     } else {
-      if (tokenBtn) tokenBtn.textContent = 'Login to Spotify';
+      if (tokenBtn) {
+        tokenBtn.textContent = 'Login to Spotify';
+        tokenBtn.style.display = '';
+      }
       if (statusEl) {
         statusEl.textContent = '';
         statusEl.classList.remove('shows-spotify-status');
-      }
-      if (tokenInput) {
-        tokenInput.disabled = false;
-        tokenInput.style.display = '';
       }
     }
   };
@@ -600,7 +597,7 @@ export async function initShowsPanel() {
 
   const params = new URLSearchParams(window.location.search);
   const authCode = params.get('code');
-  if (authCode && tokenInput) {
+  if (authCode) {
     try {
       const verifier =
         (typeof localStorage !== 'undefined' && localStorage.getItem('spotifyCodeVerifier')) || '';
@@ -619,7 +616,6 @@ export async function initShowsPanel() {
       if (res.ok) {
         const data = await res.json();
         const accessToken = data.access_token || '';
-        if (tokenInput) tokenInput.value = '';
         if (typeof localStorage !== 'undefined') {
           localStorage.setItem('spotifyToken', accessToken);
         }
@@ -634,7 +630,6 @@ export async function initShowsPanel() {
 
   const loadShows = async () => {
     const token =
-      tokenInput?.value.trim() ||
       (typeof localStorage !== 'undefined' && localStorage.getItem('spotifyToken')) || '';
     const manualApiKey =
       apiKeyInput?.value.trim() ||
@@ -644,11 +639,6 @@ export async function initShowsPanel() {
     if (!token) {
       listEl.textContent = 'Please login to Spotify.';
       return;
-    }
-
-    if (tokenInput?.value && typeof localStorage !== 'undefined') {
-      localStorage.setItem('spotifyToken', token);
-      updateSpotifyStatus();
     }
 
     if (requiresManualApiKey && !manualApiKey) {
