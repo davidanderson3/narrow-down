@@ -610,10 +610,11 @@ function selectPriorityCandidates(movies) {
   let bestFallback = [];
   for (const { minAverage, minVotes } of thresholds) {
     const filtered = movies.filter(movie => meetsQualityThreshold(movie, minAverage, minVotes));
+    if (!filtered.length) continue;
     if (filtered.length >= MIN_PRIORITY_RESULTS) {
       return filtered;
     }
-    if (filtered.length > bestFallback.length) {
+    if (!bestFallback.length) {
       bestFallback = filtered;
     }
   }

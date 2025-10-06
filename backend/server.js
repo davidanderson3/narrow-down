@@ -41,6 +41,38 @@ const mailer = (() => {
 
 app.use(express.json());
 
+const firebaseConfigFile = path.resolve(__dirname, '../js/firebase-config.js');
+const firebaseConfigJson = path.resolve(__dirname, '../firebase-config.local.json');
+
+function parseFirebaseConfig(raw) {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object') return parsed;
+  } catch (err) {
+    console.error('Failed to parse FIREBASE_CONFIG JSON:', err);
+  }
+  return null;
+}
+
+function loadFirebaseConfigFromEnv() {
+  const direct = parseFirebaseConfig(process.env.FIREBASE_CONFIG);
+  if (direct) return direct;
+
+  const config = {
+    apiKey: process.env.FIREBASE_API_KEY,
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.FIREBASE_APP_ID,
+    measurementId: process.env.FIREBASE_MEASUREMENT_ID
+  };
+
+  const hasValues = Object.values(config).some(Boolean);
+  return hasValues ? config : null;
+}
+
 const plaidClient = (() => {
   const clientID = process.env.PLAID_CLIENT_ID;
   const secret = process.env.PLAID_SECRET;
@@ -57,6 +89,43 @@ const plaidClient = (() => {
   });
   return new PlaidApi(config);
 })();
+
+app.get('/js/firebase-config.js', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.type('application/javascript');
+
+  if (fs.existsSync(firebaseConfigFile)) {
+    res.sendFile(firebaseConfigFile);
+    return;
+  }
+
+  if (fs.existsSync(firebaseConfigJson)) {
+    try {
+      const jsonText = fs.readFileSync(firebaseConfigJson, 'utf8');
+      const parsed = parseFirebaseConfig(jsonText);
+      if (parsed) {
+        res.send(`window.__FIREBASE_CONFIG__ = ${JSON.stringify(parsed)};`);
+        return;
+      }
+    } catch (err) {
+      console.error('Failed to read firebase-config.local.json:', err);
+    }
+  }
+
+  const envConfig = loadFirebaseConfigFromEnv();
+  if (envConfig) {
+    res.send(`window.__FIREBASE_CONFIG__ = ${JSON.stringify(envConfig)};`);
+    return;
+  }
+
+  const message = 'Firebase configuration was not provided. Set FIREBASE_CONFIG or related environment variables.';
+  res.send(`(function(){
+    const msg = ${JSON.stringify(message)};
+    console.warn(msg);
+    window.__FIREBASE_CONFIG__ = null;
+    window.__FIREBASE_CONFIG_ERROR__ = msg;
+  })();`);
+});
 
 // Serve static files (like index.html, style.css, script.js)
 app.use(express.static(path.resolve(__dirname, '../')));
