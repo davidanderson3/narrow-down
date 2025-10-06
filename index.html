@@ -34,6 +34,8 @@
       <div class="tabs scroll-tabs" id="tabsContainer" style="visibility:hidden;">
         <button class="tab-button active" data-target="moviesPanel">Movies</button>
         <button class="tab-button" data-target="showsPanel">Live Music</button>
+        <button class="tab-button" data-target="eventbritePanel">Eventbrite Events</button>
+        <button class="tab-button" data-target="facebookEventsPanel">Facebook Events</button>
         <button class="tab-button" data-target="recipesPanel">Recipes</button>
         <button class="tab-button" data-target="restaurantsPanel">Restaurants</button>
       </div>
@@ -97,6 +99,62 @@
           <div id="showsInterestedSection" style="display:none;">
             <div id="ticketmasterInterestedList" class="decision-container"></div>
           </div>
+        </div>
+      </div>
+
+    <!-- EVENTBRITE EVENTS PANEL -->
+      <div id="eventbritePanel" class="main-layout" style="display:none">
+        <div class="full-column">
+          <div class="panel-header">
+            <h2>Eventbrite Events</h2>
+            <button type="button" class="icon-btn tab-hide-btn" title="Hide Tab">🕒</button>
+          </div>
+          <div id="eventbriteForm" style="margin-bottom:1rem;display:flex;flex-wrap:wrap;gap:.5rem;align-items:flex-end;">
+            <input type="password" id="eventbriteToken" placeholder="Eventbrite API Token" style="flex:1 1 220px;min-width:200px;">
+            <input type="text" id="eventbriteQuery" placeholder="Search keywords" style="flex:1 1 160px;min-width:160px;">
+            <input type="text" id="eventbriteLocation" placeholder="City or location" style="flex:1 1 160px;min-width:160px;">
+            <label style="display:flex;flex-direction:column;font-size:.85rem;gap:.25rem;">
+              Radius
+              <select id="eventbriteRadius" style="min-width:120px;">
+                <option value="10mi">10 mi</option>
+                <option value="25mi">25 mi</option>
+                <option value="50mi" selected>50 mi</option>
+                <option value="100mi">100 mi</option>
+              </select>
+            </label>
+            <button type="button" id="eventbriteSearchBtn">Search</button>
+          </div>
+          <div id="eventbriteResults" class="decision-container"></div>
+          <footer class="tmdb-notice" style="margin-top:0.75rem;">
+            Uses the <a href="https://www.eventbrite.com/platform/api" target="_blank" rel="noopener noreferrer">Eventbrite API</a>.
+          </footer>
+        </div>
+      </div>
+
+    <!-- FACEBOOK EVENTS PANEL -->
+      <div id="facebookEventsPanel" class="main-layout" style="display:none">
+        <div class="full-column">
+          <div class="panel-header">
+            <h2>Facebook Events</h2>
+            <button type="button" class="icon-btn tab-hide-btn" title="Hide Tab">🕒</button>
+          </div>
+          <div id="facebookEventsForm" style="margin-bottom:1rem;display:flex;flex-wrap:wrap;gap:.5rem;align-items:flex-end;">
+            <input type="password" id="facebookAccessToken" placeholder="Facebook Access Token" style="flex:1 1 220px;min-width:200px;">
+            <input type="text" id="facebookPageId" placeholder="Page or Organizer ID" style="flex:1 1 200px;min-width:180px;">
+            <label style="display:flex;flex-direction:column;font-size:.85rem;gap:.25rem;">
+              Limit
+              <select id="facebookLimit" style="min-width:120px;">
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+            </label>
+            <button type="button" id="facebookFetchBtn">Fetch Events</button>
+          </div>
+          <div id="facebookEventsList" class="decision-container"></div>
+          <footer class="tmdb-notice" style="margin-top:0.75rem;">
+            Uses the <a href="https://developers.facebook.com/docs/graph-api/reference/page/events/" target="_blank" rel="noopener noreferrer">Facebook Graph API</a>.
+          </footer>
         </div>
       </div>
     <!-- RECIPES PANEL -->
@@ -189,6 +247,8 @@
   <script type="module" src="js/main.js"></script>
   <script type="module" src="js/movies.js"></script>
   <script type="module" src="js/shows.js"></script>
+  <script type="module" src="js/eventbrite.js"></script>
+  <script type="module" src="js/facebookEvents.js"></script>
   <script type="module" src="js/recipes.js"></script>
   <script type="module" src="js/restaurants.js"></script>
   <script type="module" src="js/weather.js"></script>
