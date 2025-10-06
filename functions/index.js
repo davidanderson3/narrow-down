@@ -9,14 +9,22 @@ const ALLOWED_ENDPOINTS = {
   genres: { path: '/3/genre/movie/list' },
   credits: {
     path: query => {
-      const rawId = query?.movie_id;
+      if (!query || typeof query !== 'object') return null;
+      const idKeys = ['movie_id', 'movieId', 'id'];
+      let rawId;
+      for (const key of idKeys) {
+        if (Object.prototype.hasOwnProperty.call(query, key)) {
+          rawId = query[key];
+          break;
+        }
+      }
       const value = Array.isArray(rawId) ? rawId[0] : rawId;
       if (!value && value !== 0) return null;
       const trimmed = String(value).trim();
       if (!trimmed) return null;
       return `/3/movie/${encodeURIComponent(trimmed)}/credits`;
     },
-    omitParams: ['movie_id']
+    omitParams: ['movie_id', 'movieId', 'id']
   }
 };
 

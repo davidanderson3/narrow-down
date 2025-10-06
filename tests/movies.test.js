@@ -58,10 +58,16 @@ function attachWindow(dom) {
 
 function configureFetchResponses(responses) {
   global.fetch = vi.fn();
-  responses.forEach(res => {
-    global.fetch.mockResolvedValueOnce({
+  const queue = Array.isArray(responses) ? [...responses] : [];
+  const defaultItem = queue.length ? queue[queue.length - 1] : { ok: true, json: () => Promise.resolve({}) };
+  global.fetch.mockImplementation(() => {
+    const next = queue.length ? queue.shift() : defaultItem;
+    if (next && typeof next === 'object' && 'ok' in next && typeof next.json === 'function') {
+      return Promise.resolve(next);
+    }
+    return Promise.resolve({
       ok: true,
-      json: () => Promise.resolve(res)
+      json: () => Promise.resolve(next)
     });
   });
 }
@@ -330,6 +336,7 @@ describe('initMoviesPanel', () => {
     expect(calledUrls.some(url => String(url).includes('endpoint=discover'))).toBe(true);
     expect(calledUrls.some(url => String(url).includes('endpoint=genres'))).toBe(true);
     expect(calledUrls.some(url => String(url).includes('endpoint=credits'))).toBe(true);
+    expect(calledUrls.some(url => String(url).includes('movieId=7'))).toBe(true);
     expect(calledUrls.some(url => String(url).includes('api_key='))).toBe(false);
     expect(global.localStorage.getItem('moviesApiKey')).toBeNull();
   });

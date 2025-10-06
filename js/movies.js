@@ -307,7 +307,7 @@ async function fetchCreditsForMovie(movieId, { usingProxy, apiKey }) {
   if (!movieId) return null;
   try {
     if (usingProxy) {
-      return await callTmdbProxy('credits', { movie_id: movieId });
+      return await callTmdbProxy('credits', { movieId: movieId });
     }
 
     if (!apiKey) return null;
@@ -628,7 +628,7 @@ function selectPriorityCandidates(movies) {
     if (filtered.length >= MIN_PRIORITY_RESULTS) {
       return filtered;
     }
-    if (filtered.length > bestFallback.length) {
+    if (!bestFallback.length && filtered.length) {
       bestFallback = filtered;
     }
   }
