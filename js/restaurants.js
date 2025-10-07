@@ -286,15 +286,6 @@ function formatRating(rating) {
   return numeric.toFixed(1).replace(/\.0$/, '');
 }
 
-function sanitizePhone(phone) {
-  if (typeof phone !== 'string') return '';
-  const trimmed = phone.trim();
-  if (!trimmed) return '';
-  const digits = trimmed.replace(/[^\d]/g, '');
-  if (!digits) return '';
-  return trimmed.startsWith('+') ? `+${digits}` : digits;
-}
-
 function createRatingBadge(rating, reviewCount) {
   const displayRating = formatRating(rating);
   if (!displayRating) return null;
@@ -351,22 +342,55 @@ function createAddress(rest) {
 }
 
 function createMetaList(rest) {
-  const meta = document.createElement('ul');
-  meta.className = 'restaurant-meta';
+  const items = [];
+
+  const rating = formatRating(rest.rating);
+  if (rating) {
+    let ratingText = rating;
+    if (typeof rest.reviewCount === 'number' && rest.reviewCount > 0) {
+      const suffix = rest.reviewCount === 1 ? 'review' : 'reviews';
+      ratingText += ` (${rest.reviewCount} ${suffix})`;
+    }
+    items.push({ label: 'Rating', value: ratingText });
+  } else if (typeof rest.reviewCount === 'number' && rest.reviewCount > 0) {
+    const suffix = rest.reviewCount === 1 ? 'review' : 'reviews';
+    items.push({ label: 'Reviews', value: `${rest.reviewCount} ${suffix}` });
+  }
 
   if (rest.price) {
-    const price = document.createElement('li');
-    price.textContent = `Price: ${rest.price}`;
-    meta.appendChild(price);
+    items.push({ label: 'Cost', value: rest.price });
   }
 
   if (rest.phone) {
-    const phone = document.createElement('li');
-    phone.textContent = `Phone: ${rest.phone}`;
-    meta.appendChild(phone);
+    items.push({ label: 'Phone', value: rest.phone });
   }
 
-  return meta.childNodes.length ? meta : null;
+  const distance = formatDistance(rest.distance);
+  if (distance) {
+    items.push({ label: 'Distance', value: distance });
+  }
+
+  if (!items.length) return null;
+
+  const meta = document.createElement('ul');
+  meta.className = 'restaurant-meta';
+
+  items.forEach(item => {
+    const entry = document.createElement('li');
+
+    const label = document.createElement('span');
+    label.className = 'restaurant-meta__label';
+    label.textContent = `${item.label}:`;
+    entry.appendChild(label);
+
+    const value = document.createElement('span');
+    value.textContent = ` ${item.value}`;
+    entry.appendChild(value);
+
+    meta.appendChild(entry);
+  });
+
+  return meta;
 }
 
 function createCuisineChips(rest) {
@@ -388,54 +412,19 @@ function createCuisineChips(rest) {
   return chips;
 }
 
+function getRestaurantHref(rest) {
+  const href = typeof rest?.url === 'string' && rest.url
+    ? rest.url
+    : typeof rest?.website === 'string'
+      ? rest.website
+      : '';
+  if (!href) return '';
+  return href.startsWith('http') ? href : `https://${href}`;
+}
+
 function createActions(rest) {
   const actions = document.createElement('div');
   actions.className = 'restaurant-actions';
-
-  const href = typeof rest.url === 'string' && rest.url
-    ? rest.url
-    : typeof rest.website === 'string'
-      ? rest.website
-      : '';
-  if (href) {
-    const normalized = href.startsWith('http') ? href : `https://${href}`;
-    const websiteLink = document.createElement('a');
-    websiteLink.href = normalized;
-    websiteLink.target = '_blank';
-    websiteLink.rel = 'noopener noreferrer';
-    websiteLink.className = 'restaurant-action';
-    websiteLink.textContent = href.includes('yelp.com') ? 'View on Yelp' : 'View Website';
-    actions.appendChild(websiteLink);
-  }
-
-  const lat = parseCoordinate(rest.latitude);
-  const lng = parseCoordinate(rest.longitude);
-  let directionsHref = '';
-  if (Number.isFinite(lat) && Number.isFinite(lng)) {
-    directionsHref = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
-  } else if (rest.address) {
-    directionsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-      rest.address
-    )}`;
-  }
-  if (directionsHref) {
-    const directions = document.createElement('a');
-    directions.href = directionsHref;
-    directions.target = '_blank';
-    directions.rel = 'noopener noreferrer';
-    directions.className = 'restaurant-action';
-    directions.textContent = 'Directions';
-    actions.appendChild(directions);
-  }
-
-  const phone = sanitizePhone(rest.phone);
-  if (phone) {
-    const call = document.createElement('a');
-    call.href = `tel:${phone}`;
-    call.className = 'restaurant-action';
-    call.textContent = 'Call';
-    actions.appendChild(call);
-  }
 
   const saveButton = document.createElement('button');
   saveButton.type = 'button';
@@ -470,7 +459,21 @@ function createRestaurantCard(rest) {
   header.className = 'restaurant-card__header';
 
   const title = document.createElement('h3');
-  title.textContent = rest.name || 'Unnamed Restaurant';
+  const href = getRestaurantHref(rest);
+  const displayName = rest.name || 'Unnamed Restaurant';
+
+  if (href) {
+    const link = document.createElement('a');
+    link.href = href;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.className = 'restaurant-card__title-link';
+    link.textContent = displayName;
+    title.appendChild(link);
+  } else {
+    title.textContent = displayName;
+  }
+
   header.appendChild(title);
 
   const ratingBadge = createRatingBadge(rest.rating, rest.reviewCount);
