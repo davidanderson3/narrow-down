@@ -2831,6 +2831,56 @@ h2 {
   gap: 0.4rem;
 }
 
+.restaurants-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.restaurants-toolbar__filters {
+  flex: 1 1 auto;
+}
+
+.restaurants-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.restaurant-filter-chip {
+  border: 1px solid rgba(31, 54, 49, 0.4);
+  background: #ffffff;
+  color: #1f3631;
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.restaurant-filter-chip.is-active {
+  background: #1f3631;
+  color: #ffffff;
+  border-color: #1f3631;
+}
+
+.restaurant-filter-chip:hover,
+.restaurant-filter-chip:focus-visible {
+  background: rgba(31, 54, 49, 0.12);
+  border-color: #1f3631;
+  box-shadow: 0 0 0 2px rgba(31, 54, 49, 0.15);
+}
+
+.restaurant-filter-chip.is-active:hover,
+.restaurant-filter-chip.is-active:focus-visible {
+  background: #26483f;
+  border-color: #26483f;
+}
+
 .restaurant-chip {
   background: rgba(33, 65, 54, 0.08);
   color: #1f3631;

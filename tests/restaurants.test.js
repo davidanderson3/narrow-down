@@ -7,6 +7,9 @@ function setupDom() {
     <div id="restaurantsPanel">
       <div id="restaurantsMap"></div>
       <div id="restaurantsResults">
+        <div id="restaurantsToolbar" hidden>
+          <div id="restaurantsCuisineFilters"></div>
+        </div>
         <div class="restaurants-tabs" role="tablist">
           <button type="button" class="restaurants-tab is-active" data-view="nearby" aria-selected="true"></button>
           <button type="button" class="restaurants-tab" data-view="saved" aria-selected="false"></button>
@@ -182,6 +185,96 @@ describe('initRestaurantsPanel', () => {
     const results = document.getElementById('restaurantsResults');
     const headings = Array.from(results.querySelectorAll('h3')).map(el => el.textContent);
     expect(headings).toEqual(['Local Favorite']);
+  });
+
+  it('filters nearby restaurants when cuisine toggles are changed', async () => {
+    const dom = setupDom();
+    global.window = dom.window;
+    global.document = dom.window.document;
+    window.localStorage.clear();
+
+    const geoMock = {
+      getCurrentPosition: vi.fn(success => {
+        success({ coords: { latitude: 30.2672, longitude: -97.7431 } });
+      })
+    };
+    Object.defineProperty(window.navigator, 'geolocation', {
+      configurable: true,
+      value: geoMock
+    });
+    global.navigator = window.navigator;
+
+    const sampleData = [
+      {
+        id: 'pizza',
+        name: 'Pizza Palace',
+        rating: 4.6,
+        reviewCount: 82,
+        distance: 1200,
+        categories: ['Italian']
+      },
+      {
+        id: 'sushi',
+        name: 'Sushi Central',
+        rating: 4.7,
+        reviewCount: 64,
+        distance: 1400,
+        categories: ['Japanese']
+      }
+    ];
+
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ address: { city: 'Austin' } })
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(sampleData)
+      });
+
+    await initRestaurantsPanel();
+
+    const toolbar = document.getElementById('restaurantsToolbar');
+    expect(toolbar?.hidden).toBe(false);
+
+    const filterButtons = Array.from(
+      document.querySelectorAll('#restaurantsCuisineFilters button')
+    );
+    const labels = filterButtons.map(button => button.textContent).sort();
+    expect(labels).toEqual(['Italian', 'Japanese']);
+
+    const italianButton = filterButtons.find(button => button.textContent === 'Italian');
+    expect(italianButton).toBeTruthy();
+    expect(italianButton?.getAttribute('aria-pressed')).toBe('false');
+
+    italianButton?.click();
+
+    const italianSelectedHeadings = Array.from(
+      document.querySelectorAll('#restaurantsNearby h3')
+    ).map(el => el.textContent);
+    expect(italianSelectedHeadings).toEqual(['Pizza Palace']);
+
+    const postClickButtons = Array.from(
+      document.querySelectorAll('#restaurantsCuisineFilters button')
+    );
+    const italianToggle = postClickButtons.find(button => button.textContent === 'Italian');
+    const japaneseToggle = postClickButtons.find(button => button.textContent === 'Japanese');
+    expect(italianToggle?.getAttribute('aria-pressed')).toBe('true');
+    expect(japaneseToggle?.getAttribute('aria-pressed')).toBe('false');
+
+    italianToggle?.click();
+
+    const resetHeadings = Array.from(
+      document.querySelectorAll('#restaurantsNearby h3')
+    ).map(el => el.textContent);
+    expect(resetHeadings.sort()).toEqual(['Pizza Palace', 'Sushi Central']);
+
+    const finalItalianToggle = Array.from(
+      document.querySelectorAll('#restaurantsCuisineFilters button')
+    ).find(button => button.textContent === 'Italian');
+    expect(finalItalianToggle?.getAttribute('aria-pressed')).toBe('false');
   });
 
   it('allows saving and unsaving restaurants', async () => {

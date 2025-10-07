@@ -19,13 +19,17 @@ let nearbyRestaurants = [];
 let visibleNearbyRestaurants = [];
 let currentView = 'nearby';
 let isFetchingNearby = false;
+let availableCuisines = [];
+const selectedCuisines = new Set();
 
 const domRefs = {
   resultsRoot: null,
   nearbyContainer: null,
   savedContainer: null,
   hiddenContainer: null,
-  tabButtons: []
+  tabButtons: [],
+  toolbar: null,
+  cuisineFilters: null
 };
 
 const MAX_DISTANCE_METERS = 160934; // ~100 miles
@@ -369,12 +373,67 @@ function createMetaList(rest) {
   return meta.childNodes.length ? meta : null;
 }
 
+function normalizeCuisineValue(value) {
+  if (typeof value !== 'string') return '';
+  return value.trim().toLowerCase();
+}
+
+function getRestaurantCategories(rest) {
+  if (!rest || typeof rest !== 'object') return [];
+
+  const seen = new Set();
+  const categories = [];
+
+  const addLabel = label => {
+    if (typeof label !== 'string') return;
+    const trimmed = label.trim();
+    if (!trimmed) return;
+    const normalized = normalizeCuisineValue(trimmed);
+    if (!normalized || seen.has(normalized)) return;
+    seen.add(normalized);
+    categories.push(trimmed);
+  };
+
+  if (Array.isArray(rest.categories)) {
+    rest.categories.forEach(category => {
+      if (typeof category === 'string') {
+        addLabel(category);
+      } else if (category && typeof category === 'object') {
+        if (typeof category.title === 'string') {
+          addLabel(category.title);
+        } else if (typeof category.name === 'string') {
+          addLabel(category.name);
+        } else if (typeof category.alias === 'string') {
+          addLabel(category.alias);
+        }
+      }
+    });
+  }
+
+  if (typeof rest.cuisine === 'string') {
+    addLabel(rest.cuisine);
+  }
+
+  return categories;
+}
+
+function buildCuisineOptions(restaurants = []) {
+  const map = new Map();
+  restaurants.forEach(rest => {
+    getRestaurantCategories(rest).forEach(label => {
+      const value = normalizeCuisineValue(label);
+      if (!value || map.has(value)) return;
+      map.set(value, label);
+    });
+  });
+
+  return Array.from(map.entries())
+    .sort((a, b) => a[1].localeCompare(b[1], undefined, { sensitivity: 'base' }))
+    .map(([value, label]) => ({ value, label }));
+}
+
 function createCuisineChips(rest) {
-  const categories = Array.isArray(rest.categories)
-    ? rest.categories.filter(Boolean)
-    : rest.cuisine
-      ? [rest.cuisine]
-      : [];
+  const categories = getRestaurantCategories(rest);
   if (!categories.length) return null;
 
   const chips = document.createElement('div');
@@ -654,12 +713,95 @@ function renderRestaurantsList(container, items, emptyMessage) {
   container.appendChild(grid);
 }
 
+function renderCuisineFilters() {
+  const container = domRefs.cuisineFilters;
+  const toolbar = domRefs.toolbar;
+  if (!container) return false;
+
+  const options = buildCuisineOptions(nearbyRestaurants);
+  availableCuisines = options;
+
+  const validValues = new Set(options.map(option => option.value));
+  let selectionChanged = false;
+  Array.from(selectedCuisines).forEach(value => {
+    if (!validValues.has(value)) {
+      selectedCuisines.delete(value);
+      selectionChanged = true;
+    }
+  });
+
+  container.innerHTML = '';
+  if (toolbar) {
+    toolbar.hidden = options.length === 0;
+  }
+
+  if (!options.length) {
+    return selectionChanged;
+  }
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'restaurants-filter-chips';
+
+  options.forEach(option => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'restaurant-filter-chip';
+    button.textContent = option.label;
+    button.dataset.value = option.value;
+    const isActive = selectedCuisines.has(option.value);
+    button.classList.toggle('is-active', isActive);
+    button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    button.addEventListener('click', () => {
+      toggleCuisineSelection(option.value, button);
+    });
+    wrapper.appendChild(button);
+  });
+
+  container.appendChild(wrapper);
+  return selectionChanged;
+}
+
+function toggleCuisineSelection(value, button) {
+  const normalized = normalizeCuisineValue(value);
+  if (!normalized) return;
+
+  if (selectedCuisines.has(normalized)) {
+    selectedCuisines.delete(normalized);
+  } else {
+    selectedCuisines.add(normalized);
+  }
+
+  if (button) {
+    const isActive = selectedCuisines.has(normalized);
+    button.classList.toggle('is-active', isActive);
+    button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+  }
+
+  renderNearbySection();
+  updateMapForCurrentView();
+}
+
+function matchesSelectedCuisines(rest) {
+  if (!selectedCuisines.size) return true;
+  const categories = getRestaurantCategories(rest);
+  if (!categories.length) return false;
+  return categories
+    .map(normalizeCuisineValue)
+    .some(value => selectedCuisines.has(value));
+}
+
 function renderNearbySection() {
   const container = domRefs.nearbyContainer;
   if (!container) return;
-  if (isFetchingNearby && !nearbyRestaurants.length) return;
-  visibleNearbyRestaurants = nearbyRestaurants.filter(rest => !isHidden(rest.id));
-  renderRestaurantsList(container, visibleNearbyRestaurants, 'No restaurants found.');
+  if (isFetchingNearby && !nearbyRestaurants.length) {
+    visibleNearbyRestaurants = [];
+    return;
+  }
+  const visible = nearbyRestaurants.filter(
+    rest => !isHidden(rest.id) && matchesSelectedCuisines(rest)
+  );
+  visibleNearbyRestaurants = visible;
+  renderRestaurantsList(container, visible, 'No restaurants found.');
 }
 
 function renderSavedSection() {
@@ -726,6 +868,7 @@ function updateMapForCurrentView() {
 }
 
 function renderAll() {
+  renderCuisineFilters();
   renderNearbySection();
   renderSavedSection();
   renderHiddenSection();
@@ -835,6 +978,7 @@ async function loadNearbyRestaurants(container) {
     isFetchingNearby = false;
     nearbyRestaurants = [];
     visibleNearbyRestaurants = [];
+    renderCuisineFilters();
     if (err && typeof err.code === 'number' && err.code === 1) {
       renderMessage(targetContainer, 'Location access is required to show nearby restaurants.');
     } else {
@@ -860,6 +1004,7 @@ async function loadNearbyRestaurants(container) {
     isFetchingNearby = false;
     nearbyRestaurants = [];
     visibleNearbyRestaurants = [];
+    renderCuisineFilters();
     const message = err?.message || 'Failed to load restaurants.';
     renderMessage(targetContainer, message);
     renderSavedSection();
@@ -880,8 +1025,12 @@ export async function initRestaurantsPanel() {
   domRefs.savedContainer = document.getElementById('restaurantsSaved');
   domRefs.hiddenContainer = document.getElementById('restaurantsHiddenSection');
   domRefs.tabButtons = Array.from(resultsContainer.querySelectorAll('.restaurants-tab'));
+  domRefs.toolbar = document.getElementById('restaurantsToolbar');
+  domRefs.cuisineFilters = document.getElementById('restaurantsCuisineFilters');
 
   loadStoredState();
+
+  renderCuisineFilters();
 
   domRefs.tabButtons.forEach(button => {
     button.addEventListener('click', () => {

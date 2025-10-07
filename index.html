@@ -208,6 +208,18 @@
           aria-label="Map showing nearby restaurant locations"
         ></div>
         <div id="restaurantsResults" class="restaurants-list decision-container" aria-live="polite">
+          <div
+            id="restaurantsToolbar"
+            class="restaurants-toolbar"
+            aria-label="Nearby restaurant filters"
+            hidden
+          >
+            <div
+              id="restaurantsCuisineFilters"
+              class="restaurants-toolbar__filters"
+              aria-label="Filter nearby restaurants by cuisine"
+            ></div>
+          </div>
           <div class="restaurants-tabs" role="tablist" aria-label="Restaurant lists">
             <button
               type="button"
