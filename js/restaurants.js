@@ -17,6 +17,7 @@ let savedRestaurants = [];
 let hiddenRestaurants = [];
 let nearbyRestaurants = [];
 let visibleNearbyRestaurants = [];
+let rawNearbyRestaurants = [];
 let currentView = 'nearby';
 let isFetchingNearby = false;
 let availableCuisines = [];
@@ -30,9 +31,16 @@ const domRefs = {
   tabButtons: [],
   toolbar: null,
   cuisineFilters: null
+  distanceSelect: null
 };
 
-const MAX_DISTANCE_METERS = 160934; // ~100 miles
+const DEFAULT_RADIUS_MILES = 25;
+let selectedRadiusMiles = DEFAULT_RADIUS_MILES;
+
+function milesToMeters(miles) {
+  if (!Number.isFinite(miles)) return 0;
+  return miles * 1609.34;
+}
 
 function buildRestaurantsUrl(params) {
   const query = params.toString();
@@ -687,6 +695,16 @@ function filterByDistance(items, maxDistance) {
   return nearby.length ? nearby : items;
 }
 
+function getSelectedRadiusMeters() {
+  return milesToMeters(selectedRadiusMiles);
+}
+
+function updateNearbyFromRadius() {
+  const filtered = filterByDistance(rawNearbyRestaurants, getSelectedRadiusMeters());
+  const sorted = sortByRating(filtered);
+  nearbyRestaurants = sorted;
+}
+
 function renderRestaurantsList(container, items, emptyMessage) {
   if (!container) return;
   const list = Array.isArray(items) ? items : [];
@@ -867,6 +885,15 @@ function updateMapForCurrentView() {
   }
 }
 
+function handleDistanceChange(event) {
+  const value = Number(event?.target?.value);
+  if (!Number.isFinite(value) || value <= 0) return;
+  if (value === selectedRadiusMiles) return;
+  selectedRadiusMiles = value;
+  updateNearbyFromRadius();
+  renderAll();
+}
+
 function renderAll() {
   renderCuisineFilters();
   renderNearbySection();
@@ -976,6 +1003,7 @@ async function loadNearbyRestaurants(container) {
   } catch (err) {
     console.error('Geolocation error', err);
     isFetchingNearby = false;
+    rawNearbyRestaurants = [];
     nearbyRestaurants = [];
     visibleNearbyRestaurants = [];
     renderCuisineFilters();
@@ -994,14 +1022,14 @@ async function loadNearbyRestaurants(container) {
     const { latitude, longitude } = position.coords;
     const city = await reverseGeocodeCity(latitude, longitude);
     const data = await fetchRestaurants({ latitude, longitude, city });
-    const nearby = filterByDistance(data, MAX_DISTANCE_METERS);
-    const sorted = sortByRating(nearby);
-    nearbyRestaurants = sorted;
+    rawNearbyRestaurants = Array.isArray(data) ? data : [];
+    updateNearbyFromRadius();
     isFetchingNearby = false;
     renderAll();
   } catch (err) {
     console.error('Restaurant search failed', err);
     isFetchingNearby = false;
+    rawNearbyRestaurants = [];
     nearbyRestaurants = [];
     visibleNearbyRestaurants = [];
     renderCuisineFilters();
@@ -1027,6 +1055,17 @@ export async function initRestaurantsPanel() {
   domRefs.tabButtons = Array.from(resultsContainer.querySelectorAll('.restaurants-tab'));
   domRefs.toolbar = document.getElementById('restaurantsToolbar');
   domRefs.cuisineFilters = document.getElementById('restaurantsCuisineFilters');
+  domRefs.distanceSelect = document.getElementById('restaurantsDistanceSelect');
+
+  if (domRefs.distanceSelect) {
+    const initialValue = Number(domRefs.distanceSelect.value);
+    if (Number.isFinite(initialValue) && initialValue > 0) {
+      selectedRadiusMiles = initialValue;
+    } else {
+      domRefs.distanceSelect.value = String(selectedRadiusMiles);
+    }
+    domRefs.distanceSelect.addEventListener('change', handleDistanceChange);
+  }
 
   loadStoredState();
 

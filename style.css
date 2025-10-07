@@ -2372,12 +2372,13 @@ h2 {
   padding: 4px 12px;
   cursor: pointer;
   font-size: 0.9rem;
+  color: #000;
   transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
 .genre-filter-btn.active {
   background: #7aa68c;
-  color: #fff;
+  color: #000;
   border-color: #7aa68c;
 }
 
@@ -2426,14 +2427,27 @@ h2 {
   flex: 1 1 0;
   padding: 6px;
   border: 1px solid #ccc;
+  border-radius: 8px;
   background: #f8f8f8;
+  color: #2c2c2c;
   cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.movie-tab:focus-visible,
+.shows-tab:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(122, 166, 140, 0.45);
 }
 
 .movie-tab.active,
 .shows-tab.active {
-  background: #7aa68c;
+  background: #2f6b43;
   color: #fff;
+  border-color: #2f6b43;
+  box-shadow: 0 0 0 2px rgba(47, 107, 67, 0.35);
+  font-weight: 600;
 }
 
 .movie-action {
@@ -2963,6 +2977,55 @@ h2 {
   background: #9d3d32;
 }
 
+.restaurants-filters {
+  display: flex;
+  margin-bottom: 1rem;
+  border-radius: 16px;
+  background: #f0f5f2;
+  color: #1f3631;
+  border: 1px solid rgba(31, 54, 49, 0.2);
+}
+
+.restaurants-filters fieldset {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border: none;
+}
+
+.restaurants-filters legend {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-right: 0.5rem;
+}
+
+.restaurants-filters__label {
+  font-weight: 600;
+}
+
+.restaurants-filters__control {
+  appearance: none;
+  min-width: 8rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(31, 54, 49, 0.4);
+  background: #ffffff;
+  color: #1f3631;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.restaurants-filters__control:focus-visible {
+  outline: 3px solid rgba(31, 54, 49, 0.45);
+  outline-offset: 2px;
+}
+
+.restaurants-filters__control:hover {
+  border-color: #1f3631;
+}
+
 .restaurants-tabs {
   display: flex;
   gap: 0.5rem;
@@ -3273,6 +3336,13 @@ h2 {
   margin: 0 0 0.4rem 0;
   font-size: 0.95rem;
   color: #453c2f;
+}
+
+.recipe-card__ingredient-preview {
+  margin: 0.65rem 0 0.55rem 0;
+  font-size: 0.9rem;
+  color: #4a3d2a;
+  font-weight: 500;
 }
 
 .recipe-card__ingredients,
