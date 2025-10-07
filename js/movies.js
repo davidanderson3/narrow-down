@@ -1087,6 +1087,44 @@ async function requestAdditionalMovies() {
   }
 }
 
+function setFeedLoadingState({ isLoading, hadExistingMovies = false } = {}) {
+  const listEl = domRefs.list;
+  if (!listEl) return;
+
+  if (isLoading) {
+    listEl.setAttribute('aria-busy', 'true');
+    if (hadExistingMovies) {
+      listEl.classList.add('movie-list--is-loading');
+      if (!listEl.querySelector('.movie-list-loading-overlay')) {
+        const overlay = document.createElement('div');
+        overlay.className = 'movie-list-loading-overlay';
+        overlay.setAttribute('role', 'status');
+        overlay.setAttribute('aria-live', 'polite');
+
+        const spinner = document.createElement('div');
+        spinner.className = 'movie-list-spinner';
+        spinner.setAttribute('aria-hidden', 'true');
+
+        const text = document.createElement('div');
+        text.className = 'movie-list-loading-text';
+        text.textContent = 'Loading more movies…';
+
+        overlay.append(spinner, text);
+        listEl.appendChild(overlay);
+      }
+    } else {
+      listEl.classList.remove('movie-list--is-loading');
+      listEl.innerHTML = '<em>Loading...</em>';
+    }
+    return;
+  }
+
+  listEl.removeAttribute('aria-busy');
+  listEl.classList.remove('movie-list--is-loading');
+  const overlay = listEl.querySelector('.movie-list-loading-overlay');
+  if (overlay) overlay.remove();
+}
+
 function renderFeed() {
   const listEl = domRefs.list;
   if (!listEl) return;
@@ -1649,6 +1687,8 @@ async function loadMovies() {
   let apiKey = activeApiKey || inputKey;
   let usingTestFallback = false;
 
+  const hadExistingMovies = Array.isArray(currentMovies) && currentMovies.length > 0;
+
   if (!apiKey && typeof window !== 'undefined' && window.tmdbApiKey) {
     apiKey = window.tmdbApiKey;
   }
@@ -1665,6 +1705,7 @@ async function loadMovies() {
   }
 
   if (!usingProxy && !apiKey) {
+    setFeedLoadingState({ isLoading: false });
     listEl.innerHTML = '<em>TMDB API key not provided.</em>';
     return;
   }
@@ -1677,7 +1718,7 @@ async function loadMovies() {
     }
   }
 
-  listEl.innerHTML = '<em>Loading...</em>';
+  setFeedLoadingState({ isLoading: true, hadExistingMovies });
   try {
     const movies = await fetchMovies({ usingProxy, apiKey, minFeedSize: MIN_FEED_RESULTS });
     await enrichMoviesWithCredits(movies, { usingProxy, apiKey });
@@ -1687,8 +1728,10 @@ async function loadMovies() {
     populateFeedGenreOptions();
     updateFeedFilterInputsFromState();
     feedExhausted = !currentMovies.length;
+    setFeedLoadingState({ isLoading: false });
     refreshUI();
   } catch (err) {
+    setFeedLoadingState({ isLoading: false });
     if (usingProxy) {
       console.warn('TMDB proxy unavailable, falling back to direct API', err);
       disableTmdbProxy();
@@ -1702,6 +1745,8 @@ async function loadMovies() {
     }
     console.error('Failed to load movies', err);
     listEl.textContent = 'Failed to load movies.';
+  } finally {
+    setFeedLoadingState({ isLoading: false });
   }
 }
 
