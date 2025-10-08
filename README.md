@@ -49,7 +49,7 @@ Separate helper pages (`backup.json`, `restore.html`, `settings.html`) provide a
 
 ### Eventbrite integration
 The Eventbrite proxy performs a location-first search so the Discover button can surface concerts without exposing your token to the browser:
-1. Calls the Express proxy at `/api/eventbrite` with your latitude, longitude, a default 100-mile radius, and a 14-day window. The proxy converts the radius to Eventbrite's `within` parameter, persists a rolling 24-hour cache keyed by location and start date, and accepts either the server-side token or a manually supplied one.
+1. Calls the Express proxy at `/api/eventbrite` with your latitude, longitude, a default 100-mile radius, and a 14-day window. The proxy converts the radius to Eventbrite's `within` parameter, persists a rolling 24-hour cache keyed by location and start date, and accepts either the server-side token or a manually supplied one. When the app runs on `http://localhost:3003` (the default dev server) the browser requests the proxy from the same origin, so you'll see `127.0.0.1` or `localhost` in the network tab.
 2. Limits results to Eventbrite's music category (`categories=103`) and sorts events by date before returning them to the client.
 3. Normalizes responses into a lightweight shape (name, venue, datetime, ticket URL) that the front end renders directly.
 
@@ -111,7 +111,21 @@ Remember to also configure Firebase (see `firebase.json` and `.firebaserc`) if y
 ## Troubleshooting Checklist
 - **Location sharing disabled** – allow the site to access your location so it can request nearby Eventbrite events. The Discover button will continue to show an error until geolocation succeeds.
 - **Empty Discover results** – verify your Eventbrite token is present and that the search radius encompasses nearby venues; the UI will also display the last error returned by the Eventbrite API.
-- **`Cannot GET /api/eventbrite`** – point `API_BASE_URL` at the deployed Firebase Functions proxy (or start the Express server with `npm start`) so the Discover tab can reach the Eventbrite search endpoint.
+- **`Cannot GET /api/eventbrite`** – point `API_BASE_URL` at the deployed Firebase Functions proxy (or start the Express server with `npm start`) so the Discover tab can reach the Eventbrite search endpoint. You can set the base URL in a couple of ways when you aren't running the local Express server:
+
+  ```html
+  <script>
+    window.apiBaseUrl = 'https://us-central1-<your-project>.cloudfunctions.net';
+  </script>
+  ```
+
+  or export `API_BASE_URL` before building/running the bundle:
+
+  ```bash
+  API_BASE_URL="https://us-central1-<your-project>.cloudfunctions.net" npm run build
+  ```
+
+  Both approaches make the Eventbrite module call `https://…/eventbriteProxy` instead of the local `/api/eventbrite` placeholder.
 - **Spoonacular quota errors** – the proxy caches responses for six hours; if you keep seeing rate-limit messages clear the cache collection in Firestore or wait for the TTL to expire.
 - **Firestore permission denials** – authenticate with Google using the Sign In button; most persistence features require a logged-in user.
 - **Yelp proxy failures** – ensure the `x-api-key` header or `YELP_API_KEY` env var is set. The API returns `missing yelp api key` if not.
